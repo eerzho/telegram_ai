@@ -10,7 +10,7 @@ import (
 )
 
 type App struct {
-	Name    string `env:"APP_NAME" envDefault:"Setting"`
+	Name    string `env:"APP_NAME"             envDefault:"Setting"`
 	Version string `env:"APP_VERSION,required"`
 }
 
