@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/caarlos0/env/v11"
-	"github.com/eerzho/setting/pkg/logger"
+	"github.com/eerzho/telegram-ai/pkg/httpserver"
+	"github.com/eerzho/telegram-ai/pkg/logger"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 type App struct {
@@ -13,12 +15,21 @@ type App struct {
 }
 
 type Config struct {
-	App    App
-	Logger logger.Config
+	App        App
+	Logger     logger.Config
+	HTTPServer httpserver.Config
 }
 
-func Init() (Config, error) {
-	const op = "config.Config.Init"
+func MustNew() Config {
+	c, err := New()
+	if err != nil {
+		panic(err)
+	}
+	return c
+}
+
+func New() (Config, error) {
+	const op = "config.New"
 
 	cfg, err := env.ParseAs[Config]()
 	if err != nil {

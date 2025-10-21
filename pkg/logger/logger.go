@@ -16,12 +16,20 @@ var (
 type Config struct {
 	AppName    string `env:"APP_NAME,required"`
 	AppVersion string `env:"APP_VERSION,required"`
-	Level      string `env:"LOGGER_LEVEL" envDefault:"error"` // debug, info, warn, error
+	Level      string `env:"LOGGER_LEVEL" envDefault:"info"`  // debug, info, warn, error
 	Format     string `env:"LOGGER_FORMAT" envDefault:"json"` // text, json
 }
 
-func Init(cfg Config) (*slog.Logger, error) {
-	const op = "logger.Init"
+func MustNew(cfg Config) *slog.Logger {
+	l, err := New(cfg)
+	if err != nil {
+		panic(err)
+	}
+	return l
+}
+
+func New(cfg Config) (*slog.Logger, error) {
+	const op = "logger.New"
 
 	slogLevel, err := stringToSlogLevel(cfg.Level)
 	if err != nil {
