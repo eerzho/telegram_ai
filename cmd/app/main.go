@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,19 +11,12 @@ import (
 
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/container"
-	"github.com/eerzho/telegram-ai/internal/handler"
+	"github.com/eerzho/telegram-ai/internal/controller/http"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
 )
 
 func main() {
-	ctx, cancel := signal.NotifyContext(
-		context.Background(),
-		os.Interrupt,
-		syscall.SIGINT,
-		syscall.SIGTERM,
-	)
-	defer cancel()
-
+	ctx := context.Background()
 	if err := run(ctx); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
@@ -32,38 +24,39 @@ func main() {
 }
 
 func run(ctx context.Context) error {
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
 	c := container.New()
 
 	cfg := c.MustGet("config").(config.Config)
 	lgr := c.MustGet("logger").(*slog.Logger)
 
-	mux := http.NewServeMux()
-	handler.AddRoutes(mux, c)
-
-	srv := httpserver.New(mux, cfg.HTTPServer)
+	httpServer := httpserver.New(
+		http.Handler(c),
+		cfg.HTTPServer,
+	)
 
 	serverErrs := make(chan error, 1)
 	go func() {
-		lgr.Info("starting http server", slog.String("addr", srv.Addr))
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			serverErrs <- fmt.Errorf("ListenAndServe: %w", err)
+		lgr.Info("starting http server", slog.String("addr", httpServer.Addr))
+		if err := httpServer.ListenAndServe(); err != nil {
+			serverErrs <- err
 		}
 	}()
 
 	select {
 	case err := <-serverErrs:
-		lgr.Error("http server error", slog.Any("error", err))
-		return err
+		return fmt.Errorf("server: %w", err)
 	case <-ctx.Done():
-		lgr.Info("shutting down http server")
+		lgr.Info("shutdown signal received")
 	}
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
 
-	if err := srv.Shutdown(shutdownCtx); err != nil {
-		lgr.Error("http server error", slog.Any("error", err))
-		return err
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		return fmt.Errorf("shutdown: %w", err)
 	}
 
 	c.MustReset()

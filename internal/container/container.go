@@ -3,7 +3,7 @@ package container
 import (
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
-	v1 "github.com/eerzho/telegram-ai/internal/handler/v1"
+	"github.com/eerzho/telegram-ai/internal/usecase"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 )
 
@@ -33,15 +33,11 @@ func defs(c *simpledi.Container) []simpledi.Def {
 			},
 		},
 		{
-			Key: "healthHandler",
+			Key:  "healthUsecase",
+			Deps: []string{"config"},
 			Ctor: func() any {
-				return v1.NewHealth()
-			},
-		},
-		{
-			Key: "streamHandler",
-			Ctor: func() any {
-				return v1.NewStream()
+				cfg := c.MustGet("config").(config.Config)
+				return usecase.NewHealth(cfg.App.Version)
 			},
 		},
 	}
