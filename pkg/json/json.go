@@ -4,17 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+var validate = validator.New()
+
 func Decode[T any](r *http.Request) (T, error) {
 	var v T
 	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
 		return v, fmt.Errorf("json decode: %w", err)
 	}
+
+	if err := validate.Struct(v); err != nil {
+		return v, fmt.Errorf("validation: %w", err)
+	}
+
 	return v, nil
 }
 

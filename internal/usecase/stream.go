@@ -22,4 +22,8 @@ func (s *Stream) Answer(ctx context.Context, intput input.StreamAnswer) (output.
 		defer close(resultChan)
 		defer close(errChan)
 	}()
+
+	return output.StreamAnswer{
+		ResultChan: resultChan,
+	}, errChan
 }
