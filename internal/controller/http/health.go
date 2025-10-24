@@ -13,13 +13,15 @@ func healthCheck(logger *slog.Logger, healthUsecase *usecase.Health) http.Handle
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		output, err := healthUsecase.Check(ctx, input.HealthCheck{})
+		var in input.HealthCheck
+
+		out, err := healthUsecase.Check(ctx, in)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to health check", slog.Any("error", err))
 			json.EncodeError(w, r, http.StatusInternalServerError, err)
 			return
 		}
 
-		json.Encode(w, r, http.StatusOK, output)
+		json.Encode(w, r, http.StatusOK, out)
 	})
 }
