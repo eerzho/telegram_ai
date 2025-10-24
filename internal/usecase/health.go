@@ -19,7 +19,7 @@ func NewHealth(
 	}
 }
 
-func (h *Health) Check(ctx context.Context, input input.HealthCheck) (output.HealthCheck, error) {
+func (h *Health) Check(ctx context.Context, in input.HealthCheck) (output.HealthCheck, error) {
 	return output.HealthCheck{
 		Status:  "ok",
 		Version: h.version,

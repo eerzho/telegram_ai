@@ -29,16 +29,14 @@ func MustNew(cfg Config) *slog.Logger {
 }
 
 func New(cfg Config) (*slog.Logger, error) {
-	const op = "logger.New"
-
 	slogLevel, err := stringToSlogLevel(cfg.Level)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("logger: %w", err)
 	}
 
 	handler, err := createHandler(cfg.Format, slogLevel, os.Stdout)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("logger: %w", err)
 	}
 
 	logger := slog.New(handler)

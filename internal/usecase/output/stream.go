@@ -1,5 +1,6 @@
 package output
 
 type StreamAnswer struct {
-	ResultChan <-chan string
+	TextChan <-chan string
+	ErrChan  <-chan error
 }

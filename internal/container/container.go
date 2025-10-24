@@ -1,6 +1,8 @@
 package container
 
 import (
+	"log/slog"
+
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/usecase"
@@ -38,6 +40,14 @@ func defs(c *simpledi.Container) []simpledi.Def {
 			Ctor: func() any {
 				cfg := c.MustGet("config").(config.Config)
 				return usecase.NewHealth(cfg.App.Version)
+			},
+		},
+		{
+			Key:  "streamUsecase",
+			Deps: []string{"logger"},
+			Ctor: func() any {
+				logger := c.MustGet("logger").(*slog.Logger)
+				return usecase.NewStream(logger)
 			},
 		},
 	}
