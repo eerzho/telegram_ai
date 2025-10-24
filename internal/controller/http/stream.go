@@ -38,7 +38,14 @@ func streamAnswer(logger *slog.Logger, streamUsecase *usecase.Stream) http.Handl
 			logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 			return
 		}
-		out := streamUsecase.Answer(ctx, in)
+
+		out, err := streamUsecase.Answer(ctx, in)
+		if err != nil {
+			logger.ErrorContext(ctx, "failed to answer", slog.Any("error", err))
+			json.EncodeError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
 		for {
 			select {
 			case <-ctx.Done():

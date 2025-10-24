@@ -7,6 +7,7 @@ import (
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/usecase"
 	"github.com/eerzho/telegram-ai/pkg/logger"
+	"github.com/go-playground/validator/v10"
 )
 
 func New() *simpledi.Container {
@@ -35,6 +36,12 @@ func defs(c *simpledi.Container) []simpledi.Def {
 			},
 		},
 		{
+			Key: "validate",
+			Ctor: func() any {
+				return validator.New(validator.WithRequiredStructEnabled())
+			},
+		},
+		{
 			Key:  "healthUsecase",
 			Deps: []string{"config"},
 			Ctor: func() any {
@@ -44,10 +51,11 @@ func defs(c *simpledi.Container) []simpledi.Def {
 		},
 		{
 			Key:  "streamUsecase",
-			Deps: []string{"logger"},
+			Deps: []string{"logger", "validate"},
 			Ctor: func() any {
 				logger := c.MustGet("logger").(*slog.Logger)
-				return usecase.NewStream(logger)
+				validate := c.MustGet("validate").(*validator.Validate)
+				return usecase.NewStream(logger, validate)
 			},
 		},
 	}

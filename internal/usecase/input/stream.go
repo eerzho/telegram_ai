@@ -1,22 +1,17 @@
 package input
 
-import "fmt"
-
 type StreamAnswer struct {
+	Owner    StreamAnswerSender    `json:"owner" validate:"required"`
 	Messages []StreamAnswerMessage `json:"messages" validate:"required,min=1"`
 }
 
-type StreamAnswerMessage struct {
-	Text       string `json:"text" validate:"required"`
-	Sender     string `json:"sender" validate:"required"`
-	Date       int    `json:"date" validate:"required,gt=0"`
-	IsOutgoing bool   `json:"is_outgoing"`
+type StreamAnswerSender struct {
+	ChatID int    `json:"chat_id" validate:"required"`
+	Name   string `json:"name" validate:"required"`
 }
 
-func (s StreamAnswer) Validate() error {
-	err := validate.Struct(s)
-	if err != nil {
-		return fmt.Errorf("validate: %w", err)
-	}
-	return nil
+type StreamAnswerMessage struct {
+	Sender StreamAnswerSender `json:"sender" validate:"required"`
+	Text   string             `json:"text" validate:"required"`
+	Date   int                `json:"date" validate:"required,gt=0"`
 }
