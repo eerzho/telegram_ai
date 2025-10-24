@@ -34,7 +34,7 @@ func streamAnswer(logger *slog.Logger, streamUsecase *usecase.Stream) http.Handl
 			}
 		}()
 
-		if err := sseWriter.Write("start", ""); err != nil {
+		if err := sseWriter.Write(sse.Event{Name: "start"}); err != nil {
 			logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 			return
 		}
@@ -47,19 +47,19 @@ func streamAnswer(logger *slog.Logger, streamUsecase *usecase.Stream) http.Handl
 			case err := <-out.ErrChan:
 				if err != nil {
 					logger.ErrorContext(ctx, "failed to answer", slog.Any("error", err))
-					if err := sseWriter.Write("stop", ""); err != nil {
+					if err := sseWriter.Write(sse.Event{Name: "stop"}); err != nil {
 						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 					}
 					return
 				}
 			case text, ok := <-out.TextChan:
 				if !ok {
-					if err := sseWriter.Write("stop", ""); err != nil {
+					if err := sseWriter.Write(sse.Event{Name: "stop"}); err != nil {
 						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 					}
 					return
 				}
-				if err := sseWriter.Write("append", text); err != nil {
+				if err := sseWriter.Write(sse.Event{Name: "append", Data: text}); err != nil {
 					logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 					return
 				}

@@ -33,19 +33,15 @@ func New(cfg Config) (*slog.Logger, error) {
 	if err != nil {
 		return nil, fmt.Errorf("logger: %w", err)
 	}
-
 	handler, err := createHandler(cfg.Format, slogLevel, os.Stdout)
 	if err != nil {
 		return nil, fmt.Errorf("logger: %w", err)
 	}
-
 	logger := slog.New(handler)
-
 	logger = logger.With(
 		slog.String("app_name", cfg.AppName),
 		slog.String("app_version", cfg.AppVersion),
 	)
-
 	return logger, nil
 }
 
@@ -53,7 +49,6 @@ func createHandler(format string, level slog.Level, w io.Writer) (slog.Handler, 
 	opts := &slog.HandlerOptions{
 		Level: level,
 	}
-
 	switch format {
 	case "json":
 		return slog.NewJSONHandler(w, opts), nil
