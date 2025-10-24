@@ -8,6 +8,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type responseWriter struct {
+	http.ResponseWriter
+	size       int
+	statusCode int
+}
+
 func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -20,10 +26,10 @@ func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 			rw := &responseWriter{ResponseWriter: w}
 			next.ServeHTTP(rw, r)
 			logger.InfoContext(r.Context(), "http request",
+				slog.String("request_id", requestID),
 				slog.String("method", r.Method),
 				slog.String("url_path", r.URL.Path),
 				slog.String("query", r.URL.RawQuery),
-				slog.String("request_id", requestID),
 				slog.String("user_agent", r.UserAgent()),
 				slog.Int("request_size", int(r.ContentLength)),
 				slog.Int("response_size", rw.size),
@@ -32,12 +38,6 @@ func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 			)
 		})
 	}
-}
-
-type responseWriter struct {
-	http.ResponseWriter
-	size       int
-	statusCode int
 }
 
 func (r *responseWriter) WriteHeader(statusCode int) {
