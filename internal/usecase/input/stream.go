@@ -2,7 +2,7 @@ package input
 
 type StreamAnswer struct {
 	Owner    StreamAnswerSender    `json:"owner" validate:"required"`
-	Messages []StreamAnswerMessage `json:"messages" validate:"required,min=1"`
+	Messages []StreamAnswerMessage `json:"messages" validate:"required,min=1,max=30"`
 }
 
 type StreamAnswerSender struct {

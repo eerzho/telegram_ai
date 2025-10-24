@@ -1,9 +1,12 @@
 package usecase
 
 import (
+	"cmp"
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/eerzho/telegram-ai/internal/usecase/input"
@@ -31,6 +34,20 @@ func (s *Stream) Answer(ctx context.Context, in input.StreamAnswer) (output.Stre
 
 	if err := s.validate.Struct(in); err != nil {
 		return output.StreamAnswer{}, fmt.Errorf("%s: %w", op, err)
+	}
+
+	slices.SortFunc(in.Messages, func(a, b input.StreamAnswerMessage) int {
+		return cmp.Compare(a.Date, b.Date)
+	})
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("My name is %s", in.Owner.Name))
+	for _, msg := range in.Messages {
+		if in.Owner.ChatID == msg.Sender.ChatID {
+			sb.WriteString(fmt.Sprintf("\nI said: %s", msg.Text))
+		} else {
+			sb.WriteString(fmt.Sprintf("\n%s said: %s", msg.Sender.Name, msg.Text))
+		}
 	}
 
 	textChan := make(chan string, 10)
