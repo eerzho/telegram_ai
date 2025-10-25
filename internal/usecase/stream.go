@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
-	"time"
 
+	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/usecase/input"
 	"github.com/eerzho/telegram-ai/internal/usecase/output"
 	"github.com/go-playground/validator/v10"
@@ -17,15 +17,18 @@ import (
 type Stream struct {
 	logger   *slog.Logger
 	validate *validator.Validate
+	client   *genkit.Client
 }
 
 func NewStream(
 	logger *slog.Logger,
 	validate *validator.Validate,
+	client *genkit.Client,
 ) *Stream {
 	return &Stream{
 		logger:   logger,
 		validate: validate,
+		client:   client,
 	}
 }
 
@@ -50,6 +53,11 @@ func (s *Stream) Answer(ctx context.Context, in input.StreamAnswer) (output.Stre
 		}
 	}
 
+	answer, err := s.client.GenerateAnswer(ctx, sb.String())
+	if err != nil {
+		return output.StreamAnswer{}, fmt.Errorf("%s: %w", op, err)
+	}
+
 	textChan := make(chan string, 10)
 	errChan := make(chan error, 1)
 
@@ -57,10 +65,7 @@ func (s *Stream) Answer(ctx context.Context, in input.StreamAnswer) (output.Stre
 		defer close(textChan)
 		defer close(errChan)
 
-		for _, msg := range in.Messages {
-			textChan <- msg.Text
-			time.Sleep(100 * time.Millisecond)
-		}
+		textChan <- answer
 	}()
 
 	return output.StreamAnswer{

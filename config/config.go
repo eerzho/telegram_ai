@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/caarlos0/env/v11"
+	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
 	"github.com/eerzho/telegram-ai/pkg/logger"
@@ -20,6 +21,7 @@ type Config struct {
 	Logger     logger.Config
 	HTTPServer httpserver.Config
 	CORS       cors.Config
+	Genkit     genkit.Config
 }
 
 func MustNew() Config {
