@@ -8,25 +8,32 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/go-playground/validator/v10"
 )
+
+type Genkit interface {
+	GenerateResponse(
+		ctx context.Context,
+		dialog string,
+		onChunk func(chunk string) error,
+	) error
+}
 
 type Usecase struct {
 	logger   *slog.Logger
 	validate *validator.Validate
-	client   *genkit.Client
+	genkit   Genkit
 }
 
 func NewUsecase(
 	logger *slog.Logger,
 	validate *validator.Validate,
-	client *genkit.Client,
+	genkit Genkit,
 ) *Usecase {
 	return &Usecase{
 		logger:   logger,
 		validate: validate,
-		client:   client,
+		genkit:   genkit,
 	}
 }
 
@@ -58,7 +65,7 @@ func (s *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		err := s.client.GenerateResponse(ctx, sb.String(), func(chunk string) error {
+		err := s.genkit.GenerateResponse(ctx, sb.String(), func(chunk string) error {
 			select {
 			case textChan <- chunk:
 				return nil
