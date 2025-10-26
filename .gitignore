@@ -1,3 +1,4 @@
 .env
 .claude
 .zed
+__debug_*

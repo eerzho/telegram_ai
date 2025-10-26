@@ -2,12 +2,17 @@ package genkit
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/genkit"
 	"github.com/firebase/genkit/go/plugins/compat_oai/openai"
+)
+
+var (
+	ErrPromptNotFound = errors.New("prompt not found")
 )
 
 type Config struct {
@@ -22,37 +27,40 @@ func New(cfg Config) *Client {
 	return &Client{}
 }
 
-func (c *Client) GenerateAnswer(ctx context.Context, dialogContext string) (string, error) {
-	const op = "genkit.Client.GenerateAnswer"
+func (c *Client) GenerateResponse(
+	ctx context.Context,
+	dialog string,
+	onChunk func(chunk string) error,
+) error {
+	const op = "genkit.Client.GenerateResponse"
 
 	g := c.createGenkit(ctx)
 
-	prompt := genkit.LookupPrompt(g, "answer")
+	prompt := genkit.LookupPrompt(g, "response")
 	if prompt == nil {
-		return "", fmt.Errorf("%s: prompt 'answer' not found", op)
+		return fmt.Errorf("%s: %w", op, ErrPromptNotFound)
 	}
 
-	result, err := prompt.Execute(ctx, ai.WithInput(dialogContext))
+	_, err := prompt.Execute(ctx,
+		ai.WithInput(map[string]any{"dialog": dialog}),
+		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
+			text := chunk.Text()
+			if text != "" {
+				return onChunk(text)
+			}
+			return nil
+		}),
+	)
 	if err != nil {
-		return "", fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	if result == nil {
-		return "", fmt.Errorf("%s: empty response from prompt", op)
-	}
-
-	answer := result.Text()
-	if answer == "" {
-		return "", fmt.Errorf("%s: empty text in response", op)
-	}
-
-	return answer, nil
+	return nil
 }
 
 func (c *Client) createGenkit(ctx context.Context) *genkit.Genkit {
 	return genkit.Init(ctx,
 		genkit.WithPlugins(&openai.OpenAI{}),
-		genkit.WithDefaultModel("openai/gpt-4o"),
 		genkit.WithPromptDir("./prompts"),
 	)
 }

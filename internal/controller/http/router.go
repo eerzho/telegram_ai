@@ -6,7 +6,8 @@ import (
 
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
-	"github.com/eerzho/telegram-ai/internal/usecase"
+	"github.com/eerzho/telegram-ai/internal/generate_response"
+	"github.com/eerzho/telegram-ai/internal/health_check"
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	"github.com/eerzho/telegram-ai/pkg/logging"
 	"github.com/eerzho/telegram-ai/pkg/recovery"
@@ -16,11 +17,11 @@ func Handler(c *simpledi.Container) http.Handler {
 	mux := http.NewServeMux()
 	cfg := c.MustGet("config").(config.Config)
 	logger := c.MustGet("logger").(*slog.Logger)
-	healthUsecase := c.MustGet("healthUsecase").(*usecase.Health)
-	streamUsecase := c.MustGet("streamUsecase").(*usecase.Stream)
+	healthCheckUsecase := c.MustGet("healthCheckUsecase").(*health_check.Usecase)
+	generateResponseUsecase := c.MustGet("generateResponseUsecase").(*generate_response.Usecase)
 
-	mux.Handle("GET /_hc", healthCheck(logger, healthUsecase))
-	mux.Handle("POST /stream/answer", streamAnswer(logger, streamUsecase))
+	mux.Handle("GET /v1/health-check", health_check.HTTPv1(logger, healthCheckUsecase))
+	mux.Handle("POST /v1/generate-response", generate_response.HTTPv1(logger, generateResponseUsecase))
 	mux.Handle("/", http.NotFoundHandler())
 
 	var handler http.Handler = mux
