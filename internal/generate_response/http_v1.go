@@ -19,6 +19,13 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 			return
 		}
 
+		output, err := usecase.Execute(ctx, input)
+		if err != nil {
+			logger.ErrorContext(ctx, "failed to generate response", slog.Any("error", err))
+			json.EncodeError(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
 		sseWriter, err := sse.NewWriter(w)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to create sse writer", slog.Any("error", err))
@@ -34,13 +41,6 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 
 		if err := sseWriter.Write(sse.Event{Name: "start"}); err != nil {
 			logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
-			return
-		}
-
-		output, err := usecase.Execute(ctx, input)
-		if err != nil {
-			logger.ErrorContext(ctx, "failed to generate response", slog.Any("error", err))
-			json.EncodeError(w, r, http.StatusInternalServerError, err)
 			return
 		}
 

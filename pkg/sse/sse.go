@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sync"
 )
 
 const (
@@ -16,8 +17,9 @@ var (
 )
 
 type Writer struct {
-	w *bufio.Writer
-	f http.Flusher
+	w  *bufio.Writer
+	f  http.Flusher
+	mu sync.Mutex
 }
 
 type Event struct {
@@ -43,6 +45,8 @@ func NewWriter(w http.ResponseWriter) (*Writer, error) {
 }
 
 func (s *Writer) Write(e Event) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if e.ID != 0 {
 		if _, err := fmt.Fprintf(s.w, "id: %d\n", e.ID); err != nil {
 			return fmt.Errorf("sse write: %w", err)
@@ -70,6 +74,8 @@ func (s *Writer) Write(e Event) error {
 }
 
 func (s *Writer) Close() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.flush()
 }
 
