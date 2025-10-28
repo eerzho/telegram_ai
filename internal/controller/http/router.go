@@ -7,6 +7,7 @@ import (
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/generate_response"
+	"github.com/eerzho/telegram-ai/internal/generate_summary"
 	"github.com/eerzho/telegram-ai/internal/health_check"
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	"github.com/eerzho/telegram-ai/pkg/logging"
@@ -19,9 +20,11 @@ func Handler(c *simpledi.Container) http.Handler {
 	logger := c.MustGet("logger").(*slog.Logger)
 	healthCheckUsecase := c.MustGet("healthCheckUsecase").(*health_check.Usecase)
 	generateResponseUsecase := c.MustGet("generateResponseUsecase").(*generate_response.Usecase)
+	generateSummaryUsecase := c.MustGet("generateSummaryUsecase").(*generate_summary.Usecase)
 
 	mux.Handle("GET /v1/health-check", health_check.HTTPv1(logger, healthCheckUsecase))
 	mux.Handle("POST /v1/generate-response", generate_response.HTTPv1(logger, generateResponseUsecase))
+	mux.Handle("POST /v1/generate-summary", generate_summary.HTTPv1(logger, generateSummaryUsecase))
 	mux.Handle("/", http.NotFoundHandler())
 
 	var handler http.Handler = mux
