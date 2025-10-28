@@ -4,14 +4,13 @@ import (
 	"cmp"
 	"context"
 	"fmt"
-	"log/slog"
 	"slices"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 )
 
-type Genkit interface {
+type Generator interface {
 	GenerateResponse(
 		ctx context.Context,
 		dialog domain.Dialog,
@@ -20,33 +19,31 @@ type Genkit interface {
 }
 
 type Usecase struct {
-	logger   *slog.Logger
-	validate *validator.Validate
-	genkit   Genkit
+	validate  *validator.Validate
+	generator Generator
 }
 
 func NewUsecase(
-	logger *slog.Logger,
 	validate *validator.Validate,
-	genkit Genkit,
+	generator Generator,
 ) *Usecase {
 	return &Usecase{
-		logger:   logger,
-		validate: validate,
-		genkit:   genkit,
+		validate:  validate,
+		generator: generator,
 	}
 }
 
-func (s *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
+func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 	const op = "generate_response.Usecase.Execute"
 
-	if err := s.validate.Struct(input); err != nil {
+	if err := u.validate.Struct(input); err != nil {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
 	}
 
 	slices.SortFunc(input.Messages, func(a, b InputMessage) int {
 		return cmp.Compare(a.Date, b.Date)
 	})
+	dialog := inputToDialog(input)
 
 	textChan := make(chan string, 10)
 	errChan := make(chan error, 1)
@@ -54,15 +51,16 @@ func (s *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		dialog := inputToDialog(input)
-		err := s.genkit.GenerateResponse(ctx, dialog, func(chunk string) error {
-			select {
-			case textChan <- chunk:
-				return nil
-			case <-ctx.Done():
-				return ctx.Err()
-			}
-		})
+		err := u.generator.GenerateResponse(ctx, dialog,
+			func(chunk string) error {
+				select {
+				case textChan <- chunk:
+					return nil
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+			},
+		)
 		if err != nil {
 			errChan <- fmt.Errorf("%s: %w", op, err)
 			return

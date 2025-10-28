@@ -2,7 +2,7 @@ package generate_response
 
 type Input struct {
 	Owner    InputSender    `json:"owner" validate:"required"`
-	Messages []InputMessage `json:"messages" validate:"required,min=1,max=50,dive"`
+	Messages []InputMessage `json:"messages" validate:"required,min=1,max=1000,dive"`
 }
 
 type InputSender struct {

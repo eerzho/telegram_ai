@@ -15,7 +15,7 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 		input, err := json.Decode[Input](r)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to json decode", slog.Any("error", err))
-			json.EncodeError(w, r, http.StatusInternalServerError, err)
+			json.EncodeError(w, r, http.StatusBadRequest, err)
 			return
 		}
 
