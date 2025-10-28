@@ -1,12 +1,11 @@
 package container
 
 import (
-	"log/slog"
-
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/generate_response"
+	"github.com/eerzho/telegram-ai/internal/generate_summary"
 	"github.com/eerzho/telegram-ai/internal/health_check"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
@@ -61,12 +60,20 @@ func defs(c *simpledi.Container) []simpledi.Def {
 		},
 		{
 			Key:  "generateResponseUsecase",
-			Deps: []string{"logger", "validate", "genkit"},
+			Deps: []string{"validate", "genkit"},
 			Ctor: func() any {
-				logger := c.MustGet("logger").(*slog.Logger)
 				validate := c.MustGet("validate").(*validator.Validate)
 				client := c.MustGet("genkit").(*genkit.Client)
-				return generate_response.NewUsecase(logger, validate, client)
+				return generate_response.NewUsecase(validate, client)
+			},
+		},
+		{
+			Key:  "generateSummaryUsecase",
+			Deps: []string{"validate", "genkit"},
+			Ctor: func() any {
+				validate := c.MustGet("validate").(*validator.Validate)
+				client := c.MustGet("genkit").(*genkit.Client)
+				return generate_summary.NewUsecase(validate, client)
 			},
 		},
 	}
