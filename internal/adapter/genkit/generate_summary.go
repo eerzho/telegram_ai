@@ -13,12 +13,13 @@ import (
 
 func (c *Client) GenerateSummary(
 	ctx context.Context,
+	language string,
 	dialog domain.Dialog,
 	onCunk func(chunk string) error,
 ) error {
 	const op = "genkit.Client.GenerateSummary"
 
-	promptName, input, err := c.createInputForSummary(dialog)
+	promptName, input, err := c.createInputForSummary(language, dialog)
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
@@ -46,7 +47,7 @@ func (c *Client) GenerateSummary(
 	return nil
 }
 
-func (c *Client) createInputForSummary(dialog domain.Dialog) (string, map[string]any, error) {
+func (c *Client) createInputForSummary(language string, dialog domain.Dialog) (string, map[string]any, error) {
 	promptName := "summary"
 
 	var conversationBuilder strings.Builder
@@ -61,6 +62,7 @@ func (c *Client) createInputForSummary(dialog domain.Dialog) (string, map[string
 	}
 
 	input := map[string]any{
+		"language":          language,
 		"author_name":       dialog.Owner.Name,
 		"current_timestamp": time.Now().Format(time.DateTime),
 		"conversation":      conversationBuilder.String(),

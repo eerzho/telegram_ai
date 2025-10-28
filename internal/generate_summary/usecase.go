@@ -14,6 +14,7 @@ import (
 type Generator interface {
 	GenerateSummary(
 		ctx context.Context,
+		language string,
 		dialog domain.Dialog,
 		onChunk func(chunk string) error,
 	) error
@@ -52,7 +53,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		err := u.generator.GenerateSummary(ctx, dialog,
+		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
 			func(chunk string) error {
 				data, err := json.Marshal(map[string]string{"text": chunk})
 				if err != nil {
