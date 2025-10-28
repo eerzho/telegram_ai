@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
-	"strings"
 
+	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 )
 
 type Genkit interface {
 	GenerateResponse(
 		ctx context.Context,
-		dialog string,
+		dialog domain.Dialog,
 		onChunk func(chunk string) error,
 	) error
 }
@@ -48,24 +48,14 @@ func (s *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return cmp.Compare(a.Date, b.Date)
 	})
 
-	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("My name is %s", input.Owner.Name))
-	for _, msg := range input.Messages {
-		if input.Owner.ChatID == msg.Sender.ChatID {
-			sb.WriteString(fmt.Sprintf("\nI said: %s", msg.Text))
-		} else {
-			sb.WriteString(fmt.Sprintf("\n%s said: %s", msg.Sender.Name, msg.Text))
-		}
-	}
-
 	textChan := make(chan string, 10)
 	errChan := make(chan error, 1)
-
 	go func() {
 		defer close(textChan)
 		defer close(errChan)
 
-		err := s.genkit.GenerateResponse(ctx, sb.String(), func(chunk string) error {
+		dialog := inputToDialog(input)
+		err := s.genkit.GenerateResponse(ctx, dialog, func(chunk string) error {
 			select {
 			case textChan <- chunk:
 				return nil
