@@ -1,0 +1,70 @@
+package genkit
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/eerzho/telegram-ai/internal/domain"
+	"github.com/firebase/genkit/go/ai"
+	"github.com/firebase/genkit/go/genkit"
+)
+
+func (c *Client) GenerateSummary(
+	ctx context.Context,
+	dialog domain.Dialog,
+	onCunk func(chunk string) error,
+) error {
+	const op = "genkit.Client.GenerateSummary"
+
+	promptName, input, err := c.createInputForSummary(dialog)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	g := c.createGenkit(ctx)
+	prompt := genkit.LookupPrompt(g, promptName)
+	if prompt == nil {
+		return fmt.Errorf("%s: %w", op, ErrPromptNotFound)
+	}
+
+	_, err = prompt.Execute(ctx,
+		ai.WithInput(input),
+		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
+			text := chunk.Text()
+			if text != "" {
+				return onCunk(text)
+			}
+			return nil
+		}),
+	)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	return nil
+}
+
+func (c *Client) createInputForSummary(dialog domain.Dialog) (string, map[string]any, error) {
+	promptName := "summary"
+
+	var conversationBuilder strings.Builder
+
+	for _, msg := range dialog.Messages {
+		timestamp := time.Unix(int64(msg.Date), 0).Format(time.DateTime)
+		conversationBuilder.WriteString(fmt.Sprintf("[%s] %s: %s\n",
+			timestamp,
+			msg.Sender.Name,
+			msg.Text,
+		))
+	}
+
+	input := map[string]any{
+		"author_name":       dialog.Owner.Name,
+		"current_timestamp": time.Now().Format(time.DateTime),
+		"conversation":      conversationBuilder.String(),
+	}
+
+	return promptName, input, nil
+}
