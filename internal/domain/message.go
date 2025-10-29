@@ -7,8 +7,8 @@ type Message struct {
 }
 
 type User struct {
-	ChatID string
-	Name   string
+	ChatID   string
+	Nickname string
 }
 
 type Dialog struct {

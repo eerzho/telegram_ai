@@ -1,4 +1,4 @@
-package generate_summary
+package generate_response
 
 import "github.com/eerzho/telegram-ai/internal/domain"
 
@@ -7,8 +7,8 @@ func inputToDialog(input Input) domain.Dialog {
 	for _, msg := range input.Messages {
 		messages = append(messages, domain.Message{
 			Sender: domain.User{
-				ChatID: msg.Sender.ChatID,
-				Name:   msg.Sender.Name,
+				ChatID:   msg.Sender.ChatID,
+				Nickname: msg.Sender.Nickname,
 			},
 			Text: msg.Text,
 			Date: msg.Date,
@@ -17,8 +17,8 @@ func inputToDialog(input Input) domain.Dialog {
 
 	return domain.Dialog{
 		Owner: domain.User{
-			ChatID: input.Owner.ChatID,
-			Name:   input.Owner.Name,
+			ChatID:   input.Owner.ChatID,
+			Nickname: input.Owner.Nickname,
 		},
 		Messages: messages,
 	}

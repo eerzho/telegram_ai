@@ -56,14 +56,14 @@ func (c *Client) createInputForSummary(language string, dialog domain.Dialog) (s
 		timestamp := time.Unix(int64(msg.Date), 0).Format(time.DateTime)
 		conversationBuilder.WriteString(fmt.Sprintf("[%s] %s: %s\n",
 			timestamp,
-			msg.Sender.Name,
+			msg.Sender.Nickname,
 			msg.Text,
 		))
 	}
 
 	input := map[string]any{
 		"language":          language,
-		"author_name":       dialog.Owner.Name,
+		"author_name":       dialog.Owner.Nickname,
 		"current_timestamp": time.Now().Format(time.DateTime),
 		"conversation":      conversationBuilder.String(),
 	}

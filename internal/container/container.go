@@ -4,9 +4,9 @@ import (
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
-	"github.com/eerzho/telegram-ai/internal/generate_response"
-	"github.com/eerzho/telegram-ai/internal/generate_summary"
-	"github.com/eerzho/telegram-ai/internal/health_check"
+	"github.com/eerzho/telegram-ai/internal/infra/health_check"
+	"github.com/eerzho/telegram-ai/internal/response/generate_response"
+	"github.com/eerzho/telegram-ai/internal/summary/generate_summary"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
 )
