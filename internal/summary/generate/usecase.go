@@ -20,18 +20,25 @@ type Generator interface {
 	) error
 }
 
+type Cacher interface {
+	SetSummary(ctx context.Context, chatID, summary string) error
+}
+
 type Usecase struct {
 	validate  *validator.Validate
 	generator Generator
+	cacher    Cacher
 }
 
 func NewUsecase(
 	validate *validator.Validate,
 	generator Generator,
+	cacher Cacher,
 ) *Usecase {
 	return &Usecase{
 		validate:  validate,
 		generator: generator,
+		cacher:    cacher,
 	}
 }
 
@@ -53,8 +60,10 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
+		summary := ""
 		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
 			func(chunk string) error {
+				summary += chunk
 				data, err := json.Marshal(map[string]string{"text": chunk})
 				if err != nil {
 					return fmt.Errorf("%s: %w", op, err)
@@ -67,6 +76,12 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 				}
 			},
 		)
+		if err != nil {
+			errChan <- fmt.Errorf("%s: %w", op, err)
+			return
+		}
+
+		err = u.cacher.SetSummary(ctx, input.Owner.ChatID, summary)
 		if err != nil {
 			errChan <- fmt.Errorf("%s: %w", op, err)
 			return

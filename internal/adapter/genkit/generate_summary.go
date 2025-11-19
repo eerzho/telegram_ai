@@ -15,7 +15,7 @@ func (c *Client) GenerateSummary(
 	ctx context.Context,
 	language string,
 	dialog domain.Dialog,
-	onCunk func(chunk string) error,
+	onChunk func(chunk string) error,
 ) error {
 	const op = "genkit.Client.GenerateSummary"
 
@@ -35,7 +35,7 @@ func (c *Client) GenerateSummary(
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			text := chunk.Text()
 			if text != "" {
-				return onCunk(text)
+				return onChunk(text)
 			}
 			return nil
 		}),

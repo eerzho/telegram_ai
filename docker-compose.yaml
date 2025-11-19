@@ -1,20 +1,4 @@
 services:
-  http:
-    container_name: http_${APP_NAME}
-    build:
-      context: .
-      target: dev
-      dockerfile: ./docker/http/Dockerfile
-    env_file: .env
-    ports:
-      - "80:80"
-    volumes:
-      - .:/http
-    restart: unless-stopped
-    depends_on:
-      - postgres
-      - valkey
-
   postgres:
     container_name: postgres_${APP_NAME}
     image: postgres:18.0-alpine3.22
@@ -36,9 +20,7 @@ services:
     volumes:
       - valkey_data:/data
     restart: unless-stopped
-    command: valkey-server --httpendonly yes
 
 volumes:
-  http_data:
   valkey_data:
   postgres_data:
