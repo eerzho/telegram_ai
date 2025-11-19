@@ -1,9 +1,8 @@
-package generate
+package response_generate
 
 import (
 	"cmp"
 	"context"
-	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -12,38 +11,30 @@ import (
 )
 
 type Generator interface {
-	GenerateSummary(
+	GenerateResponse(
 		ctx context.Context,
-		language string,
 		dialog domain.Dialog,
 		onChunk func(chunk string) error,
 	) error
 }
 
-type Cacher interface {
-	SetSummary(ctx context.Context, chatID, summary string) error
-}
-
 type Usecase struct {
 	validate  *validator.Validate
 	generator Generator
-	cacher    Cacher
 }
 
 func NewUsecase(
 	validate *validator.Validate,
 	generator Generator,
-	cacher Cacher,
 ) *Usecase {
 	return &Usecase{
 		validate:  validate,
 		generator: generator,
-		cacher:    cacher,
 	}
 }
 
 func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
-	const op = "generate_summary.Usecase.Execute"
+	const op = "generate_response.Usecase.Execute"
 
 	if err := u.validate.Struct(input); err != nil {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
@@ -60,28 +51,16 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		summary := ""
-		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
+		err := u.generator.GenerateResponse(ctx, dialog,
 			func(chunk string) error {
-				summary += chunk
-				data, err := json.Marshal(map[string]string{"text": chunk})
-				if err != nil {
-					return fmt.Errorf("%s: %w", op, err)
-				}
 				select {
-				case textChan <- string(data):
+				case textChan <- chunk:
 					return nil
 				case <-ctx.Done():
 					return ctx.Err()
 				}
 			},
 		)
-		if err != nil {
-			errChan <- fmt.Errorf("%s: %w", op, err)
-			return
-		}
-
-		err = u.cacher.SetSummary(ctx, input.Owner.ChatID, summary)
 		if err != nil {
 			errChan <- fmt.Errorf("%s: %w", op, err)
 			return

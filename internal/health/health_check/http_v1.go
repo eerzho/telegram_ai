@@ -1,4 +1,4 @@
-package check
+package health_check
 
 import (
 	"log/slog"

@@ -1,4 +1,4 @@
-package stub_genkit
+package genkit_stub
 
 import (
 	"context"
@@ -7,13 +7,13 @@ import (
 	"github.com/eerzho/telegram-ai/internal/domain"
 )
 
-type Stub struct{}
+type Client struct{}
 
-func NewStub() *Stub {
-	return &Stub{}
+func New() *Client {
+	return &Client{}
 }
 
-func (s *Stub) GenerateSummary(
+func (c *Client) GenerateSummary(
 	ctx context.Context,
 	language string,
 	dialog domain.Dialog,

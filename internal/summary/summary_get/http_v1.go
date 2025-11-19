@@ -1,4 +1,4 @@
-package get
+package summary_get
 
 import (
 	"log/slog"

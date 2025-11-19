@@ -1,4 +1,4 @@
-package check
+package health_check
 
 type Input struct{}
 

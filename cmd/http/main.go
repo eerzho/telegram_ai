@@ -12,14 +12,14 @@ import (
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
+	"github.com/eerzho/telegram-ai/internal/adapter/genkit_stub"
 	"github.com/eerzho/telegram-ai/internal/adapter/postgres"
-	"github.com/eerzho/telegram-ai/internal/adapter/stub_genkit"
 	"github.com/eerzho/telegram-ai/internal/adapter/valkey"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
-	health_check "github.com/eerzho/telegram-ai/internal/health/check"
-	response_generate "github.com/eerzho/telegram-ai/internal/response/generate"
-	summary_generate "github.com/eerzho/telegram-ai/internal/summary/generate"
-	"github.com/eerzho/telegram-ai/internal/summary/get"
+	"github.com/eerzho/telegram-ai/internal/health/health_check"
+	"github.com/eerzho/telegram-ai/internal/response/response_generate"
+	"github.com/eerzho/telegram-ai/internal/summary/summary_generate"
+	"github.com/eerzho/telegram-ai/internal/summary/summary_get"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
@@ -136,9 +136,9 @@ func definitions() []simpledi.Definition {
 			New: func() any {
 				validate := simpledi.Get[*validator.Validate]("validate")
 				// client := simpledi.Get[*genkit.Client]("genkit")
-				stubGenkit := simpledi.Get[*stub_genkit.Stub]("stub_genkit")
+				client := simpledi.Get[*genkit_stub.Client]("genkit_stub")
 				valkey := simpledi.Get[*valkey.Client]("valkey")
-				return summary_generate.NewUsecase(validate, stubGenkit, valkey)
+				return summary_generate.NewUsecase(validate, client, valkey)
 			},
 		},
 		{
@@ -158,9 +158,9 @@ func definitions() []simpledi.Definition {
 			},
 		},
 		{
-			ID: "stub_genkit",
+			ID: "genkit_stub",
 			New: func() any {
-				return stub_genkit.NewStub()
+				return genkit_stub.New()
 			},
 		},
 		{
@@ -169,7 +169,7 @@ func definitions() []simpledi.Definition {
 			New: func() any {
 				validate := simpledi.Get[*validator.Validate]("validate")
 				valkey := simpledi.Get[*valkey.Client]("valkey")
-				return get.NewUsecase(validate, valkey)
+				return summary_get.NewUsecase(validate, valkey)
 			},
 		},
 	}

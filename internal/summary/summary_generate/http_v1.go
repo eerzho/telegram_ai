@@ -1,4 +1,4 @@
-package generate
+package summary_generate
 
 import (
 	"log/slog"
@@ -21,7 +21,7 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
-			logger.ErrorContext(ctx, "failed to generate response", slog.Any("error", err))
+			logger.ErrorContext(ctx, "failed to generate summary", slog.Any("error", err))
 			json.EncodeError(w, r, http.StatusInternalServerError, err)
 			return
 		}
@@ -51,7 +51,7 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 				return
 			case err := <-output.ErrChan:
 				if err != nil {
-					logger.ErrorContext(ctx, "failed to generate response", slog.Any("error", err))
+					logger.ErrorContext(ctx, "failed to generate summary", slog.Any("error", err))
 					if err := sseWriter.Write(sse.Event{Name: "stop"}); err != nil {
 						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 					}

@@ -1,4 +1,4 @@
-package get
+package summary_get
 
 type Input struct {
 	ChatID string `validate:"required,min=1"`
