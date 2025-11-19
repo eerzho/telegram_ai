@@ -8,5 +8,5 @@ create table if not exists summaries(
 
 -- +goose Down
 -- +goose StatementBegin
-drop table if exitst summaries;
+drop table if exists summaries;
 -- +goose StatementEnd
