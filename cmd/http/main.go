@@ -9,10 +9,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
-	"github.com/eerzho/telegram-ai/internal/container"
+	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
+	"github.com/eerzho/telegram-ai/internal/infra/health_check"
+	"github.com/eerzho/telegram-ai/internal/response/generate_response"
+	"github.com/eerzho/telegram-ai/internal/summary/generate_summary"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
+	"github.com/eerzho/telegram-ai/pkg/logger"
+	"github.com/go-playground/validator/v10"
 )
 
 func main() {
@@ -27,13 +33,17 @@ func run(ctx context.Context) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	c := container.New()
+	for _, definition := range definitions() {
+		simpledi.Set(definition)
+	}
 
-	cfg := c.MustGet("config").(config.Config)
-	lgr := c.MustGet("logger").(*slog.Logger)
+	simpledi.Resolve()
+
+	cfg := simpledi.Get[config.Config]("config")
+	lgr := simpledi.Get[*slog.Logger]("logger")
 
 	httpServer := httpserver.New(
-		http.Handler(c),
+		http.Handler(),
 		cfg.HTTPServer,
 	)
 
@@ -59,9 +69,68 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("shutdown: %w", err)
 	}
 
-	c.MustReset()
+	simpledi.Close()
 
 	lgr.Info("http server stopped")
 
 	return nil
+}
+
+func definitions() []simpledi.Definition {
+	return []simpledi.Definition{
+		{
+			ID: "config",
+			New: func() any {
+				return config.MustNew()
+			},
+		},
+		{
+			ID:   "logger",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return logger.MustNew(cfg.Logger)
+			},
+		},
+		{
+			ID: "validate",
+			New: func() any {
+				return validator.New(validator.WithRequiredStructEnabled())
+			},
+		},
+		{
+			ID:   "genkit",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return genkit.New(cfg.Genkit)
+			},
+		},
+		{
+			ID:   "healthCheckUsecase",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return health_check.NewUsecase(cfg.App.Version)
+			},
+		},
+		{
+			ID:   "generateResponseUsecase",
+			Deps: []string{"validate", "genkit"},
+			New: func() any {
+				validate := simpledi.Get[*validator.Validate]("validate")
+				client := simpledi.Get[*genkit.Client]("genkit")
+				return generate_response.NewUsecase(validate, client)
+			},
+		},
+		{
+			ID:   "generateSummaryUsecase",
+			Deps: []string{"validate", "genkit"},
+			New: func() any {
+				validate := simpledi.Get[*validator.Validate]("validate")
+				client := simpledi.Get[*genkit.Client]("genkit")
+				return generate_summary.NewUsecase(validate, client)
+			},
+		},
+	}
 }

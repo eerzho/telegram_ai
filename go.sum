@@ -9,6 +9,8 @@ github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/eerzho/simpledi v1.2.0 h1:K9dXciNAEO9vhD+AMmIQ+myBkkRW4Xd+P6BiRNF7P5U=
 github.com/eerzho/simpledi v1.2.0/go.mod h1:iE44EH/lL8oJ6KlPGTF2n05kVlpwB2vscC7axCufugo=
+github.com/eerzho/simpledi v1.3.0 h1:rM8FznDrTvsv9mlrILWkgAKJ+kKFsel9EBWt8g0Aq+Y=
+github.com/eerzho/simpledi v1.3.0/go.mod h1:TvqIYnaaiSGvMgoqaDZ0i/Y4GWVdevbqKPbseLdRaac=
 github.com/firebase/genkit/go v1.1.0 h1:SQqzQt19gEubvUUCFV98TARFAzD30zT3QhseF3oTKqo=
 github.com/firebase/genkit/go v1.1.0/go.mod h1:ru1cIuxG1s3HeUjhnadVveDJ1yhinj+j+uUh0f0pyxE=
 github.com/gabriel-vasile/mimetype v1.4.10 h1:zyueNbySn/z8mJZHLt6IPw0KoZsiQNszIpU+bX4+ZK0=

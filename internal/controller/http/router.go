@@ -14,13 +14,13 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/recovery"
 )
 
-func Handler(c *simpledi.Container) http.Handler {
+func Handler() http.Handler {
 	mux := http.NewServeMux()
-	cfg := c.MustGet("config").(config.Config)
-	logger := c.MustGet("logger").(*slog.Logger)
-	healthCheckUsecase := c.MustGet("healthCheckUsecase").(*health_check.Usecase)
-	generateResponseUsecase := c.MustGet("generateResponseUsecase").(*generate_response.Usecase)
-	generateSummaryUsecase := c.MustGet("generateSummaryUsecase").(*generate_summary.Usecase)
+	cfg := simpledi.Get[config.Config]("config")
+	logger := simpledi.Get[*slog.Logger]("logger")
+	healthCheckUsecase := simpledi.Get[*health_check.Usecase]("healthCheckUsecase")
+	generateResponseUsecase := simpledi.Get[*generate_response.Usecase]("generateResponseUsecase")
+	generateSummaryUsecase := simpledi.Get[*generate_summary.Usecase]("generateSummaryUsecase")
 
 	mux.Handle("GET /v1/health-check", health_check.HTTPv1(logger, healthCheckUsecase))
 	mux.Handle("POST /v1/responses/generate", generate_response.HTTPv1(logger, generateResponseUsecase))
