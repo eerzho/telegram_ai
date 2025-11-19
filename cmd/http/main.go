@@ -134,11 +134,13 @@ func definitions() []simpledi.Definition {
 			ID:   "summaryGenerateUsecase",
 			Deps: []string{"validate", "genkit", "valkey"},
 			New: func() any {
+				logger := simpledi.Get[*slog.Logger]("logger")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				// client := simpledi.Get[*genkit.Client]("genkit")
 				client := simpledi.Get[*genkit_stub.Client]("genkit_stub")
 				valkey := simpledi.Get[*valkey.Client]("valkey")
-				return summary_generate.NewUsecase(validate, client, valkey)
+				postgres := simpledi.Get[*postgres.DB]("postgres")
+				return summary_generate.NewUsecase(logger, validate, client, valkey, postgres)
 			},
 		},
 		{
@@ -165,11 +167,18 @@ func definitions() []simpledi.Definition {
 		},
 		{
 			ID:   "summaryGetUsecase",
-			Deps: []string{"validate", "valkey"},
+			Deps: []string{"logger", "validate", "valkey", "postgres"},
 			New: func() any {
+				logger := simpledi.Get[*slog.Logger]("logger")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				valkey := simpledi.Get[*valkey.Client]("valkey")
-				return summary_get.NewUsecase(validate, valkey)
+				postgres := simpledi.Get[*postgres.DB]("postgres")
+				return summary_get.NewUsecase(
+					logger,
+					validate,
+					valkey,
+					postgres,
+				)
 			},
 		},
 	}

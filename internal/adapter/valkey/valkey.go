@@ -3,7 +3,7 @@ package valkey
 import "github.com/valkey-io/valkey-go"
 
 const (
-	summaryKeyPrefix = "summary"
+	summaryPrefix = "summary"
 )
 
 type Config struct {

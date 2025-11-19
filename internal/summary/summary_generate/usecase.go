@@ -33,23 +33,23 @@ type Usecase struct {
 	logger   *slog.Logger
 	validate *validator.Validate
 	genkit   Genkit
-	postgres Postgres
 	valkey   Valkey
+	postgres Postgres
 }
 
 func NewUsecase(
 	logger *slog.Logger,
 	validate *validator.Validate,
 	genkit Genkit,
-	postgres Postgres,
 	valkey Valkey,
+	postgres Postgres,
 ) *Usecase {
 	return &Usecase{
 		logger:   logger,
 		validate: validate,
 		genkit:   genkit,
-		postgres: postgres,
 		valkey:   valkey,
+		postgres: postgres,
 	}
 }
 
