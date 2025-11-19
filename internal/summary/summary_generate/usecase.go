@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 )
 
-type Genkit interface {
+type Generator interface {
 	GenerateSummary(
 		ctx context.Context,
 		language string,
@@ -21,35 +22,35 @@ type Genkit interface {
 	) error
 }
 
-type Valkey interface {
+type Cache interface {
 	SetSummary(ctx context.Context, chatID, text string) error
 }
 
-type Postgres interface {
+type Storage interface {
 	UpdateSummary(ctx context.Context, chatID, text string) error
 }
 
 type Usecase struct {
-	logger   *slog.Logger
-	validate *validator.Validate
-	genkit   Genkit
-	valkey   Valkey
-	postgres Postgres
+	logger    *slog.Logger
+	validate  *validator.Validate
+	generator Generator
+	cache     Cache
+	storage   Storage
 }
 
 func NewUsecase(
 	logger *slog.Logger,
 	validate *validator.Validate,
-	genkit Genkit,
-	valkey Valkey,
-	postgres Postgres,
+	generator Generator,
+	cache Cache,
+	storage Storage,
 ) *Usecase {
 	return &Usecase{
-		logger:   logger,
-		validate: validate,
-		genkit:   genkit,
-		valkey:   valkey,
-		postgres: postgres,
+		logger:    logger,
+		validate:  validate,
+		generator: generator,
+		cache:     cache,
+		storage:   storage,
 	}
 }
 
@@ -71,10 +72,10 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		text := ""
-		err := u.genkit.GenerateSummary(ctx, input.Language, dialog,
+		var builder strings.Builder
+		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
 			func(chunk string) error {
-				text += chunk
+				builder.WriteString(chunk)
 				data, err := json.Marshal(map[string]string{"text": chunk})
 				if err != nil {
 					return fmt.Errorf("%s: %w", op, err)
@@ -91,14 +92,15 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 			errChan <- fmt.Errorf("%s: %w", op, err)
 			return
 		}
+		text := builder.String()
 
-		err = u.postgres.UpdateSummary(ctx, input.Owner.ChatID, text)
+		err = u.storage.UpdateSummary(ctx, input.Owner.ChatID, text)
 		if err != nil {
 			errChan <- fmt.Errorf("%s: %w", op, err)
 			return
 		}
 
-		err = u.valkey.SetSummary(ctx, input.Owner.ChatID, text)
+		err = u.cache.SetSummary(ctx, input.Owner.ChatID, text)
 		if err != nil {
 			u.logger.WarnContext(ctx, "failed to set summary",
 				slog.Any("error", fmt.Errorf("%s: %w", op, err)),

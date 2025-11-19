@@ -9,33 +9,33 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type Valkey interface {
+type Cache interface {
 	SetSummary(ctx context.Context, chatID, text string) error
 	GetSummary(ctx context.Context, chatID string) (string, error)
 }
 
-type Postgres interface {
+type Storage interface {
 	FindSummary(ctx context.Context, chatID string) (domain.Summary, error)
 }
 
 type Usecase struct {
 	logger   *slog.Logger
 	validate *validator.Validate
-	valkey   Valkey
-	postgres Postgres
+	cache    Cache
+	storage  Storage
 }
 
 func NewUsecase(
 	logger *slog.Logger,
 	validate *validator.Validate,
-	valkey Valkey,
-	postgres Postgres,
+	cache Cache,
+	storage Storage,
 ) *Usecase {
 	return &Usecase{
 		logger:   logger,
 		validate: validate,
-		valkey:   valkey,
-		postgres: postgres,
+		cache:    cache,
+		storage:  storage,
 	}
 }
 
@@ -46,7 +46,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	text, err := u.valkey.GetSummary(ctx, input.ChatID)
+	text, err := u.cache.GetSummary(ctx, input.ChatID)
 	if err == nil {
 		return Output{Text: text}, nil
 	}
@@ -54,12 +54,12 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 	)
 
-	summary, err := u.postgres.FindSummary(ctx, input.ChatID)
+	summary, err := u.storage.FindSummary(ctx, input.ChatID)
 	if err != nil {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = u.valkey.SetSummary(ctx, summary.ChatID, summary.Text)
+	err = u.cache.SetSummary(ctx, summary.ChatID, summary.Text)
 	if err != nil {
 		u.logger.WarnContext(ctx, "failed to set summary",
 			slog.Any("error", fmt.Errorf("%s: %w", op, err)),
