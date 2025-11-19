@@ -5,13 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"slices"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 )
 
-type Generator interface {
+type Genkit interface {
 	GenerateSummary(
 		ctx context.Context,
 		language string,
@@ -20,25 +21,35 @@ type Generator interface {
 	) error
 }
 
-type Cacher interface {
+type Valkey interface {
 	SetSummary(ctx context.Context, chatID, text string) error
 }
 
+type Postgres interface {
+	UpdateSummary(ctx context.Context, chatID, text string) error
+}
+
 type Usecase struct {
-	validate  *validator.Validate
-	generator Generator
-	cacher    Cacher
+	logger   *slog.Logger
+	validate *validator.Validate
+	genkit   Genkit
+	postgres Postgres
+	valkey   Valkey
 }
 
 func NewUsecase(
+	logger *slog.Logger,
 	validate *validator.Validate,
-	generator Generator,
-	cacher Cacher,
+	genkit Genkit,
+	postgres Postgres,
+	valkey Valkey,
 ) *Usecase {
 	return &Usecase{
-		validate:  validate,
-		generator: generator,
-		cacher:    cacher,
+		logger:   logger,
+		validate: validate,
+		genkit:   genkit,
+		postgres: postgres,
+		valkey:   valkey,
 	}
 }
 
@@ -61,7 +72,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(errChan)
 
 		text := ""
-		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
+		err := u.genkit.GenerateSummary(ctx, input.Language, dialog,
 			func(chunk string) error {
 				text += chunk
 				data, err := json.Marshal(map[string]string{"text": chunk})
@@ -81,10 +92,17 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 			return
 		}
 
-		err = u.cacher.SetSummary(ctx, input.Owner.ChatID, text)
+		err = u.postgres.UpdateSummary(ctx, input.Owner.ChatID, text)
 		if err != nil {
 			errChan <- fmt.Errorf("%s: %w", op, err)
 			return
+		}
+
+		err = u.valkey.SetSummary(ctx, input.Owner.ChatID, text)
+		if err != nil {
+			u.logger.WarnContext(ctx, "failed to set summary",
+				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
+			)
 		}
 	}()
 
