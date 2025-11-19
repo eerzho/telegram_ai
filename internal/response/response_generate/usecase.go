@@ -34,7 +34,7 @@ func NewUsecase(
 }
 
 func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
-	const op = "generate_response.Usecase.Execute"
+	const op = "response_generate.Usecase.Execute"
 
 	if err := u.validate.Struct(input); err != nil {
 		return Output{}, fmt.Errorf("%s: %w", op, err)

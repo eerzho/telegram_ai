@@ -15,10 +15,10 @@ func (c *Client) GetSummary(ctx context.Context, chatID string) (string, error) 
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	summary, err := cmd.AsBytes()
+	text, err := cmd.AsBytes()
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
-	return string(summary), nil
+	return string(text), nil
 }
