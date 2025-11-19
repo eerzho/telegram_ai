@@ -1,9 +1,8 @@
-package generate_summary
+package generate
 
 import (
 	"cmp"
 	"context"
-	"encoding/json"
 	"fmt"
 	"slices"
 
@@ -12,9 +11,8 @@ import (
 )
 
 type Generator interface {
-	GenerateSummary(
+	GenerateResponse(
 		ctx context.Context,
-		language string,
 		dialog domain.Dialog,
 		onChunk func(chunk string) error,
 	) error
@@ -36,7 +34,7 @@ func NewUsecase(
 }
 
 func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
-	const op = "generate_summary.Usecase.Execute"
+	const op = "generate_response.Usecase.Execute"
 
 	if err := u.validate.Struct(input); err != nil {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
@@ -53,14 +51,10 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
+		err := u.generator.GenerateResponse(ctx, dialog,
 			func(chunk string) error {
-				data, err := json.Marshal(map[string]string{"text": chunk})
-				if err != nil {
-					return fmt.Errorf("%s: %w", op, err)
-				}
 				select {
-				case textChan <- string(data):
+				case textChan <- chunk:
 					return nil
 				case <-ctx.Done():
 					return ctx.Err()

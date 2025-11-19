@@ -6,9 +6,9 @@ import (
 
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
-	"github.com/eerzho/telegram-ai/internal/infra/health_check"
-	"github.com/eerzho/telegram-ai/internal/response/generate_response"
-	"github.com/eerzho/telegram-ai/internal/summary/generate_summary"
+	health_check "github.com/eerzho/telegram-ai/internal/health/check"
+	response_generate "github.com/eerzho/telegram-ai/internal/response/generate"
+	summary_generate "github.com/eerzho/telegram-ai/internal/summary/generate"
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	"github.com/eerzho/telegram-ai/pkg/logging"
 	"github.com/eerzho/telegram-ai/pkg/recovery"
@@ -18,13 +18,14 @@ func Handler() http.Handler {
 	mux := http.NewServeMux()
 	cfg := simpledi.Get[config.Config]("config")
 	logger := simpledi.Get[*slog.Logger]("logger")
+
 	healthCheckUsecase := simpledi.Get[*health_check.Usecase]("healthCheckUsecase")
-	generateResponseUsecase := simpledi.Get[*generate_response.Usecase]("generateResponseUsecase")
-	generateSummaryUsecase := simpledi.Get[*generate_summary.Usecase]("generateSummaryUsecase")
+	responseGenerateUsecase := simpledi.Get[*response_generate.Usecase]("responseGenerateUsecase")
+	summaryGenerateUsecase := simpledi.Get[*summary_generate.Usecase]("summaryGenerateUsecase")
 
 	mux.Handle("GET /v1/health-check", health_check.HTTPv1(logger, healthCheckUsecase))
-	mux.Handle("POST /v1/responses/generate", generate_response.HTTPv1(logger, generateResponseUsecase))
-	mux.Handle("POST /v1/summaries/generate", generate_summary.HTTPv1(logger, generateSummaryUsecase))
+	mux.Handle("POST /v1/responses/generate", response_generate.HTTPv1(logger, responseGenerateUsecase))
+	mux.Handle("POST /v1/summaries/generate", summary_generate.HTTPv1(logger, summaryGenerateUsecase))
 	mux.Handle("/", http.NotFoundHandler())
 
 	var handler http.Handler = mux

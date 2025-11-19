@@ -1,4 +1,4 @@
-package generate_response
+package generate
 
 type Input struct {
 	Owner    InputUser      `json:"owner" validate:"required"`

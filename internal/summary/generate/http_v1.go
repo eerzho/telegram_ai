@@ -1,4 +1,4 @@
-package generate_summary
+package generate
 
 import (
 	"log/slog"

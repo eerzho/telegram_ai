@@ -13,9 +13,9 @@ import (
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
-	"github.com/eerzho/telegram-ai/internal/infra/health_check"
-	"github.com/eerzho/telegram-ai/internal/response/generate_response"
-	"github.com/eerzho/telegram-ai/internal/summary/generate_summary"
+	health_check "github.com/eerzho/telegram-ai/internal/health/check"
+	response_generate "github.com/eerzho/telegram-ai/internal/response/generate"
+	summary_generate "github.com/eerzho/telegram-ai/internal/summary/generate"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
@@ -69,7 +69,10 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("shutdown: %w", err)
 	}
 
-	simpledi.Close()
+	err := simpledi.Close()
+	if err != nil {
+		lgr.Warn("failed to close container", slog.Any("error", err))
+	}
 
 	lgr.Info("http server stopped")
 
@@ -115,21 +118,21 @@ func definitions() []simpledi.Definition {
 			},
 		},
 		{
-			ID:   "generateResponseUsecase",
+			ID:   "responseGenerateUsecase",
 			Deps: []string{"validate", "genkit"},
 			New: func() any {
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return generate_response.NewUsecase(validate, client)
+				return response_generate.NewUsecase(validate, client)
 			},
 		},
 		{
-			ID:   "generateSummaryUsecase",
+			ID:   "summaryGenerateUsecase",
 			Deps: []string{"validate", "genkit"},
 			New: func() any {
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return generate_summary.NewUsecase(validate, client)
+				return summary_generate.NewUsecase(validate, client)
 			},
 		},
 	}

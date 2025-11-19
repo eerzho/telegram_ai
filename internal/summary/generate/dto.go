@@ -1,4 +1,4 @@
-package generate_summary
+package generate
 
 type Input struct {
 	Language string         `json:"language" validate:"required,min=2,max=2"`

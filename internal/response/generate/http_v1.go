@@ -1,4 +1,4 @@
-package generate_response
+package generate
 
 import (
 	"log/slog"
