@@ -61,7 +61,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 
 	err = u.cache.SetSummary(ctx, summary.ChatID, summary.Text)
 	if err != nil {
-		u.logger.WarnContext(ctx, "failed to set summary",
+		u.logger.ErrorContext(ctx, "failed to set summary",
 			slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 		)
 	}
