@@ -14,7 +14,7 @@ var (
 )
 
 type Config struct {
-	Key string `env:"OPENAI_API_KEY"`
+	Key string `env:"OPENAI_API_KEY,required"`
 }
 
 type Client struct {

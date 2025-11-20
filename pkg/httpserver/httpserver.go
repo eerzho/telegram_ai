@@ -8,7 +8,7 @@ import (
 
 type Config struct {
 	Host              string        `env:"HTTP_SERVER_HOST"          envDefault:""`
-	Port              string        `env:"HTTP_SERVER_PORT"          envDefault:"8080"`
+	Port              string        `env:"HTTP_SERVER_PORT"          envDefault:"80"`
 	ReadHeaderTimeout time.Duration `env:"HTTP_SERVER_READ_HEADER_TIMEOUT" envDefault:"10s"`
 	ReadTimeout       time.Duration `env:"HTTP_SERVER_READ_TIMEOUT"  envDefault:"10s"`
 	WriteTimeout      time.Duration `env:"HTTP_SERVER_WRITE_TIMEOUT" envDefault:"10s"`

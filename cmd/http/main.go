@@ -139,8 +139,8 @@ func definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				logger := simpledi.Get[*slog.Logger]("logger")
 				validate := simpledi.Get[*validator.Validate]("validate")
-				// client := simpledi.Get[*genkit.Client]("genkit")
-				client := simpledi.Get[*genkit_stub.Client]("genkit_stub")
+				client := simpledi.Get[*genkit.Client]("genkit")
+				// client := simpledi.Get[*genkit_stub.Client]("genkit_stub")
 				valkey := simpledi.Get[*valkey.Client]("valkey")
 				postgres := simpledi.Get[*postgres.DB]("postgres")
 				return summary_generate.NewUsecase(
