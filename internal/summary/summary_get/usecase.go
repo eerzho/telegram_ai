@@ -66,5 +66,5 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		)
 	}
 
-	return Output{Text: text}, nil
+	return Output{Text: summary.Text}, nil
 }

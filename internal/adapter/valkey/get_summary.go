@@ -14,11 +14,12 @@ func (c *Client) GetSummary(ctx context.Context, chatID string) (string, error) 
 	if err := cmd.Error(); err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
-
-	text, err := cmd.AsBytes()
+	if err := cmd.Error(); err != nil {
+		return "", fmt.Errorf("%s: %w", op, err)
+	}
+	text, err := cmd.ToString()
 	if err != nil {
 		return "", fmt.Errorf("%s: %w", op, err)
 	}
-
-	return string(text), nil
+	return text, nil
 }
