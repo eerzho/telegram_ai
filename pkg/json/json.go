@@ -1,6 +1,7 @@
 package json
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,7 +29,7 @@ func Decode[T any](r *http.Request) (T, error) {
 	if err != nil {
 		return v, fmt.Errorf("json decode: %w", err)
 	}
-	
+
 	if mediaType != "application/json" {
 		return v, fmt.Errorf("json decode: %w", ErrInvalidContentType)
 	}
@@ -40,11 +41,14 @@ func Decode[T any](r *http.Request) (T, error) {
 }
 
 func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) {
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(v); err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(v); err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-	}
+	w.Write(buf.Bytes())
 }
 
 func EncodeError(w http.ResponseWriter, r *http.Request, status int, err error) {
