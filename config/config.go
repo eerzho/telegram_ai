@@ -15,8 +15,9 @@ import (
 )
 
 type App struct {
-	Name    string `env:"APP_NAME"             envDefault:"Setting"`
-	Version string `env:"APP_VERSION,required"`
+	Name             string `env:"APP_NAME" envDefault:"Setting"`
+	Version          string `env:"APP_VERSION,required"`
+	GeneratorSemSize int64  `env:"APP_GENERATOR_SEM_SIZE" envDefault:"1000"`
 }
 
 type Config struct {

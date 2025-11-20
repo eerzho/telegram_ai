@@ -23,6 +23,7 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/sync/semaphore"
 )
 
 func main() {
@@ -125,22 +126,31 @@ func definitions() []simpledi.Definition {
 			ID:   "responseGenerateUsecase",
 			Deps: []string{"validate", "genkit"},
 			New: func() any {
+				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return response_generate.NewUsecase(validate, client)
+				return response_generate.NewUsecase(generatorSem, validate, client)
 			},
 		},
 		{
 			ID:   "summaryGenerateUsecase",
 			Deps: []string{"validate", "genkit", "valkey"},
 			New: func() any {
+				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				logger := simpledi.Get[*slog.Logger]("logger")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				// client := simpledi.Get[*genkit.Client]("genkit")
 				client := simpledi.Get[*genkit_stub.Client]("genkit_stub")
 				valkey := simpledi.Get[*valkey.Client]("valkey")
 				postgres := simpledi.Get[*postgres.DB]("postgres")
-				return summary_generate.NewUsecase(logger, validate, client, valkey, postgres)
+				return summary_generate.NewUsecase(
+					generatorSem,
+					logger,
+					validate,
+					client,
+					valkey,
+					postgres,
+				)
 			},
 		},
 		{
@@ -187,6 +197,14 @@ func definitions() []simpledi.Definition {
 					valkey,
 					postgres,
 				)
+			},
+		},
+		{
+			ID:   "generatorSem",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return semaphore.NewWeighted(cfg.App.GeneratorSemSize)
 			},
 		},
 	}

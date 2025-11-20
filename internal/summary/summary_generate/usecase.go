@@ -11,6 +11,7 @@ import (
 
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
+	"golang.org/x/sync/semaphore"
 )
 
 type Generator interface {
@@ -31,6 +32,7 @@ type Storage interface {
 }
 
 type Usecase struct {
+	sem       *semaphore.Weighted
 	logger    *slog.Logger
 	validate  *validator.Validate
 	generator Generator
@@ -39,6 +41,7 @@ type Usecase struct {
 }
 
 func NewUsecase(
+	sem *semaphore.Weighted,
 	logger *slog.Logger,
 	validate *validator.Validate,
 	generator Generator,
@@ -46,6 +49,7 @@ func NewUsecase(
 	storage Storage,
 ) *Usecase {
 	return &Usecase{
+		sem:       sem,
 		logger:    logger,
 		validate:  validate,
 		generator: generator,
@@ -61,16 +65,21 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	slices.SortFunc(input.Messages, func(a, b InputMessage) int {
-		return cmp.Compare(a.Date, b.Date)
-	})
-	dialog := inputToDialog(input)
-
+	ok := u.sem.TryAcquire(1)
+	if !ok {
+		return Output{}, fmt.Errorf("%s: too many request", op)
+	}
 	textChan := make(chan string, 10)
 	errChan := make(chan error, 1)
 	go func() {
+		defer u.sem.Release(1)
 		defer close(textChan)
 		defer close(errChan)
+
+		slices.SortFunc(input.Messages, func(a, b InputMessage) int {
+			return cmp.Compare(a.Date, b.Date)
+		})
+		dialog := inputToDialog(input)
 
 		var builder strings.Builder
 		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
@@ -96,6 +105,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 			return
 		}
 
+		ctx := context.Background()
 		text := builder.String()
 		err = u.storage.UpdateSummary(ctx, input.Owner.ChatID, text)
 		if err != nil {
