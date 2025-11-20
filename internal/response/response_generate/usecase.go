@@ -62,7 +62,10 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 			},
 		)
 		if err != nil {
-			errChan <- fmt.Errorf("%s: %w", op, err)
+			select {
+			case errChan <- fmt.Errorf("%s: %w", op, err):
+			case <-ctx.Done():
+			}
 			return
 		}
 	}()

@@ -1,6 +1,7 @@
 package response_generate
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -10,7 +11,8 @@ import (
 
 func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
 
 		input, err := json.Decode[Input](r)
 		if err != nil {

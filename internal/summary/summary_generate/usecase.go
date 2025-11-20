@@ -76,12 +76,12 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
 			func(chunk string) error {
 				builder.WriteString(chunk)
-				data, err := json.Marshal(map[string]string{"text": chunk})
+				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})
 				if err != nil {
 					return fmt.Errorf("%s: %w", op, err)
 				}
 				select {
-				case textChan <- string(data):
+				case textChan <- string(jsonChunk):
 					return nil
 				case <-ctx.Done():
 					return ctx.Err()
@@ -89,22 +89,27 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 			},
 		)
 		if err != nil {
-			errChan <- fmt.Errorf("%s: %w", op, err)
+			select {
+			case errChan <- fmt.Errorf("%s: %w", op, err):
+			case <-ctx.Done():
+			}
 			return
 		}
-		text := builder.String()
 
+		text := builder.String()
 		err = u.storage.UpdateSummary(ctx, input.Owner.ChatID, text)
 		if err != nil {
-			errChan <- fmt.Errorf("%s: %w", op, err)
-			return
-		}
-
-		err = u.cache.SetSummary(ctx, input.Owner.ChatID, text)
-		if err != nil {
-			u.logger.WarnContext(ctx, "failed to set summary",
+			u.logger.ErrorContext(ctx, "failed to update summary",
 				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 			)
+			return
+		}
+		err = u.cache.SetSummary(ctx, input.Owner.ChatID, text)
+		if err != nil {
+			u.logger.ErrorContext(ctx, "failed to set summary",
+				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
+			)
+			return
 		}
 	}()
 
