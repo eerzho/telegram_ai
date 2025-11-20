@@ -10,10 +10,11 @@ import (
 
 type Config struct {
 	URL             string        `env:"POSTGRES_URL,required"`
-	STMTCacheSize   int           `env:"POSTGRES_STMT_CACHE_SIZE" envDefault:"10"`
+	STMTCacheSize   int           `env:"POSTGRES_STMT_CACHE_SIZE" envDefault:"100"`
 	MaxOpenConns    int           `env:"POSTGRES_MAX_OPEN_CONNS"    envDefault:"25"`
 	MaxIdleConns    int           `env:"POSTGRES_MAX_IDLE_CONNS"    envDefault:"5"`
 	ConnMaxLifetime time.Duration `env:"POSTGRES_CONN_MAX_LIFETIME" envDefault:"5m"`
+	ConnMaxIdleTime time.Duration `env:"POSTGRES_CONN_MAX_IDLE_TIME" envDefault:"10m"`
 }
 
 type DB struct {
@@ -26,10 +27,14 @@ func New(cfg Config) *DB {
 	if err != nil {
 		panic(err)
 	}
+	if err := db.Ping(); err != nil {
+		panic("postgres ping failed: " + err.Error())
+	}
 
 	db.SetMaxOpenConns(cfg.MaxOpenConns)
 	db.SetMaxIdleConns(cfg.MaxIdleConns)
 	db.SetConnMaxLifetime(cfg.ConnMaxLifetime)
+	db.SetConnMaxIdleTime(cfg.ConnMaxIdleTime)
 
 	return &DB{
 		db:        db,

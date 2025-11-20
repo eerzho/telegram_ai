@@ -19,7 +19,7 @@ func (db *DB) FindSummary(ctx context.Context, chatID string) (domain.Summary, e
 			select chat_id, text from summaries
 			where chat_id = $1
 		`
-		stmt, err = db.db.Preparex(query)
+		stmt, err = db.db.PreparexContext(ctx, query)
 		if err != nil {
 			return domain.Summary{}, fmt.Errorf("%s: %w", op, err)
 		}

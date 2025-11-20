@@ -18,7 +18,7 @@ func (db *DB) UpdateSummary(ctx context.Context, chatID, text string) error {
 			on conflict (chat_id)
 			do update set text = excluded.text
 		`
-		stmt, err = db.db.Preparex(query)
+		stmt, err = db.db.PreparexContext(ctx, query)
 		if err != nil {
 			return nil
 		}

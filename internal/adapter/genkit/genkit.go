@@ -18,16 +18,15 @@ type Config struct {
 }
 
 type Client struct {
+	genkit *genkit.Genkit
 }
 
 func New(cfg Config) *Client {
 	_ = os.Setenv("OPENAI_API_KEY", cfg.Key)
-	return &Client{}
-}
-
-func (c *Client) createGenkit(ctx context.Context) *genkit.Genkit {
-	return genkit.Init(ctx,
-		genkit.WithPlugins(&openai.OpenAI{}),
-		genkit.WithPromptDir("./prompts"),
-	)
+	return &Client{
+		genkit: genkit.Init(context.Background(),
+			genkit.WithPlugins(&openai.OpenAI{}),
+			genkit.WithPromptDir("./prompts"),
+		),
+	}
 }

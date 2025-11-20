@@ -24,8 +24,7 @@ func (c *Client) GenerateSummary(
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	g := c.createGenkit(ctx)
-	prompt := genkit.LookupPrompt(g, promptName)
+	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
 		return fmt.Errorf("%s: %w", op, ErrPromptNotFound)
 	}
