@@ -36,3 +36,7 @@ func New(cfg Config) *DB {
 		stmtCache: lru.NewCache[*sqlx.Stmt](cfg.STMTCacheSize),
 	}
 }
+
+func (db *DB) Close() error {
+	return db.db.Close()
+}

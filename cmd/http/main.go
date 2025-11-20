@@ -150,6 +150,10 @@ func definitions() []simpledi.Definition {
 				cfg := simpledi.Get[config.Config]("config")
 				return valkey.New(cfg.Valkey)
 			},
+			Close: func() error {
+				valkey := simpledi.Get[*valkey.Client]("valkey")
+				return valkey.Close()
+			},
 		},
 		{
 			ID:   "postgres",
@@ -157,6 +161,10 @@ func definitions() []simpledi.Definition {
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
 				return postgres.New(cfg.Postgres)
+			},
+			Close: func() error {
+				postgres := simpledi.Get[*postgres.DB]("postgres")
+				return postgres.Close()
 			},
 		},
 		{

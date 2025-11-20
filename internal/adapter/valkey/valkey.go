@@ -25,3 +25,8 @@ func New(cfg Config) *Client {
 		client: client,
 	}
 }
+
+func (c *Client) Close() error {
+	c.client.Close()
+	return nil
+}
