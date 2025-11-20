@@ -7,6 +7,7 @@ import (
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/adapter/postgres"
 	"github.com/eerzho/telegram-ai/internal/adapter/valkey"
+	"github.com/eerzho/telegram-ai/pkg/bodysize"
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
 	"github.com/eerzho/telegram-ai/pkg/logger"
@@ -26,6 +27,7 @@ type Config struct {
 	Genkit     genkit.Config
 	Valkey     valkey.Config
 	Postgres   postgres.Config
+	BodySize   bodysize.Config
 }
 
 func MustNew() Config {
