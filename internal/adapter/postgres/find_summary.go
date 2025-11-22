@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
@@ -28,6 +30,9 @@ func (db *DB) FindSummary(ctx context.Context, chatID string) (domain.Summary, e
 
 	err = stmt.GetContext(ctx, &summary, chatID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return domain.Summary{}, fmt.Errorf("%s: %w", op, domain.ErrSummaryNotFound)
+		}
 		return domain.Summary{}, fmt.Errorf("%s: %w", op, err)
 	}
 	return summary, nil

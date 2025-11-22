@@ -50,7 +50,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 	if err == nil {
 		return Output{Text: text}, nil
 	}
-	u.logger.WarnContext(ctx, "failed to get summary",
+	u.logger.InfoContext(ctx, "failed to get summary",
 		slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 	)
 

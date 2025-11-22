@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/eerzho/telegram-ai/pkg/json"
 	"github.com/eerzho/telegram-ai/pkg/sse"
 )
@@ -17,21 +18,24 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 		input, err := json.Decode[Input](r)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to json decode", slog.Any("error", err))
-			json.EncodeError(w, r, http.StatusBadRequest, err)
+			json.EncodeError(w, r, err)
 			return
 		}
 
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
-			logger.ErrorContext(ctx, "failed to generate response", slog.Any("error", err))
-			json.EncodeError(w, r, http.StatusInternalServerError, err)
+			logger.Log(ctx, domain.LogLevel(err),
+				"failed to generate response",
+				slog.Any("error", err),
+			)
+			json.EncodeError(w, r, domain.MapToJSONError(err))
 			return
 		}
 
 		sseWriter, err := sse.NewWriter(w)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to create sse writer", slog.Any("error", err))
-			json.EncodeError(w, r, http.StatusInternalServerError, err)
+			json.EncodeError(w, r, err)
 			return
 		}
 		defer func() {

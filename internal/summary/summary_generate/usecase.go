@@ -67,7 +67,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 
 	ok := u.sem.TryAcquire(1)
 	if !ok {
-		return Output{}, fmt.Errorf("%s: too many request", op)
+		return Output{}, fmt.Errorf("%s: %w", op, domain.ErrTooManyGenerateRequests)
 	}
 	textChan := make(chan string, 10)
 	errChan := make(chan error, 1)

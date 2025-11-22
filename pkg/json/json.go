@@ -13,8 +13,21 @@ var (
 	ErrInvalidContentType = errors.New("Content-Type must be application/json")
 )
 
-type ErrorResponse struct {
-	Error string `json:"error"`
+type ErrorDetail struct {
+	Code    string `json:"code,omitempty"`
+	Message string `json:"message"`
+	Field   string `json:"field,omitempty"`
+}
+
+type Error struct {
+	Status  int           `json:"-"`
+	Code    string        `json:"code,omitempty"`
+	Message string        `json:"message"`
+	Details []ErrorDetail `json:"details,omitempty"`
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("%#v", e)
 }
 
 func Decode[T any](r *http.Request) (T, error) {
@@ -51,6 +64,13 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) {
 	w.Write(buf.Bytes())
 }
 
-func EncodeError(w http.ResponseWriter, r *http.Request, status int, err error) {
-	Encode(w, r, status, ErrorResponse{Error: err.Error()})
+func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
+	var jsonErr Error
+	if !errors.As(err, &jsonErr) {
+		jsonErr = Error{
+			Status:  http.StatusInternalServerError,
+			Message: http.StatusText(http.StatusInternalServerError),
+		}
+	}
+	Encode(w, r, jsonErr.Status, jsonErr)
 }

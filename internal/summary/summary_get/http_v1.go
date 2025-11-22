@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/eerzho/telegram-ai/pkg/json"
 )
 
@@ -14,8 +15,11 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 		input := Input{ChatID: r.PathValue("id")}
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
-			logger.ErrorContext(ctx, "failed to get summary", slog.Any("error", err))
-			json.EncodeError(w, r, http.StatusInternalServerError, err)
+			logger.Log(ctx, domain.LogLevel(err),
+				"failed to get summary",
+				slog.Any("error", err),
+			)
+			json.EncodeError(w, r, domain.MapToJSONError(err))
 			return
 		}
 
