@@ -19,17 +19,14 @@ func (c *Client) GenerateSummary(
 ) error {
 	const op = "genkit.Client.GenerateSummary"
 
-	promptName, input, err := c.createInputForSummary(language, dialog)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
+	promptName := "summary"
+	input := c.createInputForSummary(language, dialog)
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
 		return fmt.Errorf("%s: %w", op, ErrPromptNotFound)
 	}
 
-	_, err = prompt.Execute(ctx,
+	_, err := prompt.Execute(ctx,
 		ai.WithInput(input),
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			text := chunk.Text()
@@ -42,13 +39,10 @@ func (c *Client) GenerateSummary(
 	if err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
-
 	return nil
 }
 
-func (c *Client) createInputForSummary(language string, dialog domain.Dialog) (string, map[string]any, error) {
-	promptName := "summary"
-
+func (c *Client) createInputForSummary(language string, dialog domain.Dialog) map[string]any {
 	var conversationBuilder strings.Builder
 
 	for _, msg := range dialog.Messages {
@@ -67,5 +61,5 @@ func (c *Client) createInputForSummary(language string, dialog domain.Dialog) (s
 		"conversation":      conversationBuilder.String(),
 	}
 
-	return promptName, input, nil
+	return input
 }

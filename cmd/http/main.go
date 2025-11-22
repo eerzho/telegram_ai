@@ -17,6 +17,7 @@ import (
 	"github.com/eerzho/telegram-ai/internal/adapter/valkey"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
 	"github.com/eerzho/telegram-ai/internal/health/health_check"
+	"github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
 	"github.com/eerzho/telegram-ai/internal/response/response_generate"
 	"github.com/eerzho/telegram-ai/internal/summary/summary_generate"
 	"github.com/eerzho/telegram-ai/internal/summary/summary_get"
@@ -205,6 +206,16 @@ func definitions() []simpledi.Definition {
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
 				return semaphore.NewWeighted(cfg.App.GeneratorSemSize)
+			},
+		},
+		{
+			ID:   "improvementGenerateUsecase",
+			Deps: []string{"generatorSem", "validate", "genkit"},
+			New: func() any {
+				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
+				validate := simpledi.Get[*validator.Validate]("validate")
+				client := simpledi.Get[*genkit.Client]("genkit")
+				return improvement_generate.NewUsecase(generatorSem, validate, client)
 			},
 		},
 	}

@@ -18,17 +18,13 @@ func (c *Client) GenerateResponse(
 ) error {
 	const op = "genkit.Client.GenerateResponse"
 
-	promptName, input, err := c.createInputForResponse(dialog)
-	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
+	promptName, input := c.createInputForResponse(dialog)
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
 		return fmt.Errorf("%s: %w", op, ErrPromptNotFound)
 	}
 
-	_, err = prompt.Execute(ctx,
+	_, err := prompt.Execute(ctx,
 		ai.WithInput(input),
 		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
 			text := chunk.Text()
@@ -45,7 +41,7 @@ func (c *Client) GenerateResponse(
 	return nil
 }
 
-func (c *Client) createInputForResponse(dialog domain.Dialog) (string, map[string]any, error) {
+func (c *Client) createInputForResponse(dialog domain.Dialog) (string, map[string]any) {
 	const (
 		maxAuthorMessages      = 50
 		maxConversationContext = 20
@@ -91,5 +87,5 @@ func (c *Client) createInputForResponse(dialog domain.Dialog) (string, map[strin
 		input["author_messages"] = strings.TrimSpace(authorMessagesBuilder.String())
 	}
 
-	return promptName, input, nil
+	return promptName, input
 }
