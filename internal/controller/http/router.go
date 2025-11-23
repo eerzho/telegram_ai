@@ -31,7 +31,7 @@ func Handler() http.Handler {
 	mux.Handle("GET /_hc", health_check.HTTPv1(logger, healthCheckUsecase))
 	mux.Handle("POST /v1/responses/generate", response_generate.HTTPv1(logger, responseGenerateUsecase))
 	mux.Handle("POST /v1/summaries/generate", summary_generate.HTTPv1(logger, summaryGenerateUsecase))
-	mux.Handle("GET /v1/summaries/{id}", summary_get.HTTPv1(logger, summaryGetUsecase))
+	mux.Handle("GET /v1/summaries/{owner_id}/{peer_id}", summary_get.HTTPv1(logger, summaryGetUsecase))
 	mux.Handle("POST /v1/improvements/generate", improvement_generate.HTTPv1(logger, improvementGenerateUsecase))
 	mux.Handle("/", http.NotFoundHandler())
 

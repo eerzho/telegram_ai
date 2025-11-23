@@ -1,7 +1,8 @@
 package summary_get
 
 type Input struct {
-	ChatID string `validate:"required,min=1"`
+	OwnerID string `validate:"required,min=1"`
+	PeerID  string `validate:"required,min=1"`
 }
 
 type Output struct {

@@ -1,8 +1,10 @@
 -- +goose Up
 -- +goose StatementBegin
 create table if not exists summaries(
-    chat_id varchar(255) primary key,
-    text text not null
+    owner_id varchar(255) not null,
+    peer_id varchar(255) not null,
+    text text not null,
+    primary key (owner_id, peer_id)
 );
 -- +goose StatementEnd
 

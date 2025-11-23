@@ -1,6 +1,7 @@
 package domain
 
 type Summary struct {
-	ChatID string `db:"chat_id"`
-	Text   string `db:"text"`
+	OwnerID string `db:"owner_id"`
+	PeerID  string `db:"peer_id"`
+	Text    string `db:"text"`
 }

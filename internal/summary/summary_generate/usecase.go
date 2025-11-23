@@ -24,11 +24,11 @@ type Generator interface {
 }
 
 type Cache interface {
-	SetSummary(ctx context.Context, chatID, text string) error
+	SetSummary(ctx context.Context, ownerID, peerID, text string) error
 }
 
 type Storage interface {
-	UpdateSummary(ctx context.Context, chatID, text string) error
+	UpdateSummary(ctx context.Context, ownerID, peerID, text string) error
 }
 
 type Usecase struct {
@@ -107,14 +107,14 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 
 		ctx := context.Background()
 		text := builder.String()
-		err = u.storage.UpdateSummary(ctx, input.Owner.ChatID, text)
+		err = u.storage.UpdateSummary(ctx, input.Owner.ChatID, input.Peer.ChatID, text)
 		if err != nil {
 			u.logger.ErrorContext(ctx, "failed to update summary",
 				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 			)
 			return
 		}
-		err = u.cache.SetSummary(ctx, input.Owner.ChatID, text)
+		err = u.cache.SetSummary(ctx, input.Owner.ChatID, input.Peer.ChatID, text)
 		if err != nil {
 			u.logger.ErrorContext(ctx, "failed to set summary",
 				slog.Any("error", fmt.Errorf("%s: %w", op, err)),

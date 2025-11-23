@@ -8,11 +8,10 @@ import (
 	"github.com/valkey-io/valkey-go"
 )
 
-func (c *Client) GetSummary(ctx context.Context, chatID string) (string, error) {
+func (c *Client) GetSummary(ctx context.Context, ownerID, peerID string) (string, error) {
 	const op = "valkey.Client.GetSummary"
 
-	key := fmt.Sprintf("%s:%s", summaryPrefix, chatID)
-
+	key := c.summaryKey(ownerID, peerID)
 	cmd := c.client.Do(ctx, c.client.B().Get().Key(key).Build())
 	text, err := cmd.ToString()
 	if err != nil {

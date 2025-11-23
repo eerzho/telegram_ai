@@ -2,12 +2,9 @@ package valkey
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/valkey-io/valkey-go"
-)
-
-const (
-	summaryPrefix = "summary"
 )
 
 type Config struct {
@@ -57,4 +54,8 @@ func New(cfg Config) *Client {
 func (c *Client) Close() error {
 	c.client.Close()
 	return nil
+}
+
+func (c *Client) summaryKey(ownerID, peerID string) string {
+	return fmt.Sprintf("summary:%s:%s", ownerID, peerID)
 }

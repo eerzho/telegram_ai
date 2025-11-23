@@ -12,7 +12,10 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		input := Input{ChatID: r.PathValue("id")}
+		input := Input{
+			OwnerID: r.PathValue("owner_id"),
+			PeerID:  r.PathValue("peer_id"),
+		}
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
 			logger.Log(ctx, domain.LogLevel(err),

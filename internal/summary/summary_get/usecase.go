@@ -10,12 +10,12 @@ import (
 )
 
 type Cache interface {
-	SetSummary(ctx context.Context, chatID, text string) error
-	GetSummary(ctx context.Context, chatID string) (string, error)
+	SetSummary(ctx context.Context, ownerID, peerID, text string) error
+	GetSummary(ctx context.Context, ownerID, peerID string) (string, error)
 }
 
 type Storage interface {
-	FindSummary(ctx context.Context, chatID string) (domain.Summary, error)
+	FindSummary(ctx context.Context, ownerID, peerID string) (domain.Summary, error)
 }
 
 type Usecase struct {
@@ -46,7 +46,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	text, err := u.cache.GetSummary(ctx, input.ChatID)
+	text, err := u.cache.GetSummary(ctx, input.OwnerID, input.PeerID)
 	if err == nil {
 		return Output{Text: text}, nil
 	}
@@ -54,12 +54,12 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 	)
 
-	summary, err := u.storage.FindSummary(ctx, input.ChatID)
+	summary, err := u.storage.FindSummary(ctx, input.OwnerID, input.PeerID)
 	if err != nil {
 		return Output{}, fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = u.cache.SetSummary(ctx, summary.ChatID, summary.Text)
+	err = u.cache.SetSummary(ctx, summary.OwnerID, summary.PeerID, summary.Text)
 	if err != nil {
 		u.logger.ErrorContext(ctx, "failed to set summary",
 			slog.Any("error", fmt.Errorf("%s: %w", op, err)),
