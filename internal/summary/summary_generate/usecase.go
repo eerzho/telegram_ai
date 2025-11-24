@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
@@ -69,20 +70,24 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 	if !ok {
 		return Output{}, fmt.Errorf("%s: %w", op, domain.ErrTooManyGenerateRequests)
 	}
-	textChan := make(chan string, 10)
-	errChan := make(chan error, 1)
+
+	slices.SortFunc(input.Messages, func(a, b InputMessage) int {
+		return cmp.Compare(a.Date, b.Date)
+	})
+	dialog := inputToDialog(input)
+
+	textChan := make(chan string)
+	errChan := make(chan error)
 	go func() {
 		defer u.sem.Release(1)
 		defer close(textChan)
 		defer close(errChan)
 
-		slices.SortFunc(input.Messages, func(a, b InputMessage) int {
-			return cmp.Compare(a.Date, b.Date)
-		})
-		dialog := inputToDialog(input)
+		genCtx, genCancel := context.WithTimeoutCause(ctx, 30*time.Second, domain.ErrGenerationTimeout)
+		defer genCancel()
 
 		var builder strings.Builder
-		err := u.generator.GenerateSummary(ctx, input.Language, dialog,
+		err := u.generator.GenerateSummary(genCtx, input.Language, dialog,
 			func(chunk string) error {
 				builder.WriteString(chunk)
 				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})
@@ -90,33 +95,35 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 					return fmt.Errorf("%s: %w", op, err)
 				}
 				select {
+				case <-genCtx.Done():
+					return genCtx.Err()
 				case textChan <- string(jsonChunk):
 					return nil
-				case <-ctx.Done():
-					return ctx.Err()
 				}
 			},
 		)
 		if err != nil {
 			select {
+			case <-genCtx.Done():
 			case errChan <- fmt.Errorf("%s: %w", op, err):
-			case <-ctx.Done():
 			}
 			return
 		}
 
-		ctx := context.Background()
+		saveCtx, saveCancel := context.WithTimeout(ctx, 5*time.Second)
+		defer saveCancel()
+
 		text := builder.String()
-		err = u.storage.UpdateSummary(ctx, input.Owner.ChatID, input.Peer.ChatID, text)
+		err = u.storage.UpdateSummary(saveCtx, input.Owner.ChatID, input.Peer.ChatID, text)
 		if err != nil {
-			u.logger.ErrorContext(ctx, "failed to update summary",
+			u.logger.ErrorContext(saveCtx, "failed to update summary",
 				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 			)
 			return
 		}
-		err = u.cache.SetSummary(ctx, input.Owner.ChatID, input.Peer.ChatID, text)
+		err = u.cache.SetSummary(saveCtx, input.Owner.ChatID, input.Peer.ChatID, text)
 		if err != nil {
-			u.logger.ErrorContext(ctx, "failed to set summary",
+			u.logger.ErrorContext(saveCtx, "failed to set summary",
 				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
 			)
 			return

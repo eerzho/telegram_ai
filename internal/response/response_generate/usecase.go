@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"time"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
@@ -49,32 +50,35 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, fmt.Errorf("%s: %w", op, domain.ErrTooManyGenerateRequests)
 	}
 
-	textChan := make(chan string, 10)
-	errChan := make(chan error, 1)
+	slices.SortFunc(input.Messages, func(a, b InputMessage) int {
+		return cmp.Compare(a.Date, b.Date)
+	})
+	dialog := inputToDialog(input)
+
+	textChan := make(chan string)
+	errChan := make(chan error)
 	go func() {
 		defer u.sem.Release(1)
 		defer close(textChan)
 		defer close(errChan)
 
-		slices.SortFunc(input.Messages, func(a, b InputMessage) int {
-			return cmp.Compare(a.Date, b.Date)
-		})
-		dialog := inputToDialog(input)
+		genCtx, cancel := context.WithTimeoutCause(ctx, 30*time.Second, domain.ErrGenerationTimeout)
+		defer cancel()
 
-		err := u.generator.GenerateResponse(ctx, dialog,
+		err := u.generator.GenerateResponse(genCtx, dialog,
 			func(chunk string) error {
 				select {
+				case <-genCtx.Done():
+					return genCtx.Err()
 				case textChan <- chunk:
 					return nil
-				case <-ctx.Done():
-					return ctx.Err()
 				}
 			},
 		)
 		if err != nil {
 			select {
+			case <-genCtx.Done():
 			case errChan <- fmt.Errorf("%s: %w", op, err):
-			case <-ctx.Done():
 			}
 			return
 		}
