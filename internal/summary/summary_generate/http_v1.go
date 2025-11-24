@@ -45,7 +45,7 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 			}
 		}()
 
-		if err := sseWriter.Write(sse.Event{Name: "start"}); err != nil {
+		if err := sseWriter.Write(ctx, sse.Event{Name: "start"}); err != nil {
 			logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 			return
 		}
@@ -58,19 +58,19 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 			case err := <-output.ErrChan:
 				if err != nil {
 					logger.ErrorContext(ctx, "failed to generate summary", slog.Any("error", err))
-					if err := sseWriter.Write(sse.Event{Name: "stop"}); err != nil {
+					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
 						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 					}
 					return
 				}
 			case text, ok := <-output.TextChan:
 				if !ok {
-					if err := sseWriter.Write(sse.Event{Name: "stop"}); err != nil {
+					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
 						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 					}
 					return
 				}
-				if err := sseWriter.Write(sse.Event{Name: "append", Data: text}); err != nil {
+				if err := sseWriter.Write(ctx, sse.Event{Name: "append", Data: text}); err != nil {
 					logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
 					return
 				}

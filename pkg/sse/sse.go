@@ -2,6 +2,7 @@ package sse
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +15,7 @@ const (
 
 var (
 	ErrStreamingNotSupported = errors.New("streaming not supported")
+	ErrClientDisconnected    = errors.New("client disconnected")
 )
 
 type Writer struct {
@@ -44,9 +46,16 @@ func NewWriter(w http.ResponseWriter) (*Writer, error) {
 	}, nil
 }
 
-func (s *Writer) Write(e Event) error {
+func (s *Writer) Write(ctx context.Context, e Event) error {
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("sse: %w", ErrClientDisconnected)
+	default:
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
 	if e.ID != 0 {
 		if _, err := fmt.Fprintf(s.w, "id: %d\n", e.ID); err != nil {
 			return fmt.Errorf("sse write: %w", err)
