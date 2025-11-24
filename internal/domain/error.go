@@ -12,6 +12,7 @@ import (
 var (
 	ErrSummaryNotFound         = errors.New("summary not found")
 	ErrTooManyGenerateRequests = errors.New("too many generate requests")
+	ErrGenerationTimeout       = errors.New("generation timeout")
 )
 
 func LogLevel(err error) slog.Level {

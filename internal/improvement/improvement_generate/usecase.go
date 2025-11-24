@@ -3,6 +3,7 @@ package improvement_generate
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
@@ -46,26 +47,30 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, fmt.Errorf("%s: %w", op, domain.ErrTooManyGenerateRequests)
 	}
 
-	textChan := make(chan string, 10)
-	errChan := make(chan error, 1)
+	textChan := make(chan string)
+	errChan := make(chan error)
 	go func() {
 		defer u.sem.Release(1)
 		defer close(textChan)
 		defer close(errChan)
-		err := u.generator.GenerateImprovement(ctx, input.Text,
+
+		genCtx, cancel := context.WithTimeoutCause(ctx, 30*time.Second, domain.ErrGenerationTimeout)
+		defer cancel()
+
+		err := u.generator.GenerateImprovement(genCtx, input.Text,
 			func(chunk string) error {
 				select {
+				case <-genCtx.Done():
+					return genCtx.Err()
 				case textChan <- chunk:
 					return nil
-				case <-ctx.Done():
-					return ctx.Err()
 				}
 			},
 		)
 		if err != nil {
 			select {
+			case <-genCtx.Done():
 			case errChan <- fmt.Errorf("%s: %w", op, err):
-			case <-ctx.Done():
 			}
 			return
 		}

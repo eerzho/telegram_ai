@@ -1,7 +1,6 @@
 package improvement_generate
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 
@@ -12,8 +11,7 @@ import (
 
 func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
+		ctx := r.Context()
 
 		input, err := json.Decode[Input](r)
 		if err != nil {
@@ -50,16 +48,8 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 		for {
 			select {
 			case <-ctx.Done():
-				logger.InfoContext(ctx, "client disconnected")
+				logger.WarnContext(ctx, "context canceled", slog.Any("error", ctx.Err()))
 				return
-			case err := <-output.ErrChan:
-				if err != nil {
-					logger.ErrorContext(ctx, "failed to generate improvement", slog.Any("error", err))
-					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
-						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
-					}
-					return
-				}
 			case text, ok := <-output.TextChan:
 				if !ok {
 					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
@@ -69,6 +59,17 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 				}
 				if err := sseWriter.Write(ctx, sse.Event{Name: "append", Data: text}); err != nil {
 					logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
+					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
+						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
+					}
+					return
+				}
+			case err := <-output.ErrChan:
+				if err != nil {
+					logger.ErrorContext(ctx, "failed to generate improvement", slog.Any("error", err))
+					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
+						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
+					}
 					return
 				}
 			}
