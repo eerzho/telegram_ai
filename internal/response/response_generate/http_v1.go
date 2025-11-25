@@ -11,6 +11,7 @@ import (
 
 func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
 		ctx := r.Context()
 
 		input, err := json.Decode[Input](r)
@@ -33,43 +34,34 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 			json.EncodeError(w, r, err)
 			return
 		}
-		defer func() {
-			err := sseWriter.Close()
-			if err != nil {
-				logger.WarnContext(ctx, "failed to close sse writer", slog.Any("error", err))
-			}
-		}()
+		defer sseWriter.Close()
 
 		if err := sseWriter.Write(ctx, sse.Event{Name: "start"}); err != nil {
-			logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
+			logger.ErrorContext(ctx, "failed to write", slog.Any("error", err))
 			return
 		}
 
 		for {
 			select {
 			case <-ctx.Done():
-				logger.WarnContext(ctx, "context canceled", slog.Any("error", ctx.Err()))
+				logger.InfoContext(ctx, "context canceled", slog.Any("error", ctx.Err()))
 				return
 			case text, ok := <-output.TextChan:
 				if !ok {
 					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
-						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
+						logger.ErrorContext(ctx, "failed to write", slog.Any("error", err))
 					}
 					return
 				}
 				if err := sseWriter.Write(ctx, sse.Event{Name: "append", Data: text}); err != nil {
-					logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
-					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
-						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
-					}
+					logger.ErrorContext(ctx, "failed to write", slog.Any("error", err))
+					_ = sseWriter.Write(ctx, sse.Event{Name: "stop_with_error", Data: "Please try again later."})
 					return
 				}
 			case err := <-output.ErrChan:
 				if err != nil {
 					logger.ErrorContext(ctx, "failed to generate response", slog.Any("error", err))
-					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
-						logger.WarnContext(ctx, "failed to write", slog.Any("error", err))
-					}
+					_ = sseWriter.Write(ctx, sse.Event{Name: "stop_with_error", Data: "Please try again later."})
 					return
 				}
 			}
