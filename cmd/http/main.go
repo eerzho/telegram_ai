@@ -12,7 +12,6 @@ import (
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
-	"github.com/eerzho/telegram-ai/internal/adapter/genkit_stub"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
 	"github.com/eerzho/telegram-ai/internal/health/health_check"
 	"github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
@@ -144,12 +143,6 @@ func definitions() []simpledi.Definition {
 					validate,
 					client,
 				)
-			},
-		},
-		{
-			ID: "genkit_stub",
-			New: func() any {
-				return genkit_stub.New()
 			},
 		},
 		{
