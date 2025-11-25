@@ -49,14 +49,16 @@ func createHandler(format string, level slog.Level, w io.Writer) (slog.Handler, 
 	opts := &slog.HandlerOptions{
 		Level: level,
 	}
+	var handler slog.Handler
 	switch format {
 	case "json":
-		return slog.NewJSONHandler(w, opts), nil
+		handler = slog.NewJSONHandler(w, opts)
 	case "text":
-		return slog.NewTextHandler(w, opts), nil
+		handler = slog.NewTextHandler(w, opts)
 	default:
 		return nil, ErrInvalidFormat
 	}
+	return NewContextHandler(handler), nil
 }
 
 func stringToSlogLevel(level string) (slog.Level, error) {
