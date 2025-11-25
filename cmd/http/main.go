@@ -131,15 +131,13 @@ func definitions() []simpledi.Definition {
 		},
 		{
 			ID:   "summaryGenerateUsecase",
-			Deps: []string{"generatorSem", "logger", "validate", "genkit"},
+			Deps: []string{"generatorSem", "validate", "genkit"},
 			New: func() any {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
-				logger := simpledi.Get[*slog.Logger]("logger")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
 				return summary_generate.NewUsecase(
 					generatorSem,
-					logger,
 					validate,
 					client,
 				)

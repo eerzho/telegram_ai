@@ -36,12 +36,12 @@ func MapToJSONError(err error) json.Error {
 	case errors.Is(err, ErrSummaryNotFound):
 		return json.Error{
 			Status:  http.StatusNotFound,
-			Message: "Summary not found",
+			Message: "Summary not found.",
 		}
 	case errors.Is(err, ErrTooManyGenerateRequests):
 		return json.Error{
 			Status:  http.StatusTooManyRequests,
-			Message: "Please try again later",
+			Message: "Please try again later.",
 		}
 	}
 

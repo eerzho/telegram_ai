@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strings"
 	"time"
@@ -26,20 +25,17 @@ type Generator interface {
 
 type Usecase struct {
 	sem       *semaphore.Weighted
-	logger    *slog.Logger
 	validate  *validator.Validate
 	generator Generator
 }
 
 func NewUsecase(
 	sem *semaphore.Weighted,
-	logger *slog.Logger,
 	validate *validator.Validate,
 	generator Generator,
 ) *Usecase {
 	return &Usecase{
 		sem:       sem,
-		logger:    logger,
 		validate:  validate,
 		generator: generator,
 	}
