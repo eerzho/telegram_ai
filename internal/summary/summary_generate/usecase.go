@@ -24,21 +24,11 @@ type Generator interface {
 	) error
 }
 
-type Cache interface {
-	SetSummary(ctx context.Context, ownerID, peerID, text string) error
-}
-
-type Storage interface {
-	UpdateSummary(ctx context.Context, ownerID, peerID, text string) error
-}
-
 type Usecase struct {
 	sem       *semaphore.Weighted
 	logger    *slog.Logger
 	validate  *validator.Validate
 	generator Generator
-	cache     Cache
-	storage   Storage
 }
 
 func NewUsecase(
@@ -46,16 +36,12 @@ func NewUsecase(
 	logger *slog.Logger,
 	validate *validator.Validate,
 	generator Generator,
-	cache Cache,
-	storage Storage,
 ) *Usecase {
 	return &Usecase{
 		sem:       sem,
 		logger:    logger,
 		validate:  validate,
 		generator: generator,
-		cache:     cache,
-		storage:   storage,
 	}
 }
 
@@ -107,25 +93,6 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 			case <-genCtx.Done():
 			case errChan <- fmt.Errorf("%s: %w", op, err):
 			}
-			return
-		}
-
-		saveCtx, saveCancel := context.WithTimeout(ctx, 5*time.Second)
-		defer saveCancel()
-
-		text := builder.String()
-		err = u.storage.UpdateSummary(saveCtx, input.Owner.ChatID, input.Peer.ChatID, text)
-		if err != nil {
-			u.logger.ErrorContext(saveCtx, "failed to update summary",
-				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
-			)
-			return
-		}
-		err = u.cache.SetSummary(saveCtx, input.Owner.ChatID, input.Peer.ChatID, text)
-		if err != nil {
-			u.logger.ErrorContext(saveCtx, "failed to set summary",
-				slog.Any("error", fmt.Errorf("%s: %w", op, err)),
-			)
 			return
 		}
 	}()

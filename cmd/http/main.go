@@ -13,14 +13,11 @@ import (
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit_stub"
-	"github.com/eerzho/telegram-ai/internal/adapter/postgres"
-	"github.com/eerzho/telegram-ai/internal/adapter/valkey"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
 	"github.com/eerzho/telegram-ai/internal/health/health_check"
 	"github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
 	"github.com/eerzho/telegram-ai/internal/response/response_generate"
 	"github.com/eerzho/telegram-ai/internal/summary/summary_generate"
-	"github.com/eerzho/telegram-ai/internal/summary/summary_get"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
@@ -125,7 +122,7 @@ func definitions() []simpledi.Definition {
 		},
 		{
 			ID:   "responseGenerateUsecase",
-			Deps: []string{"validate", "genkit"},
+			Deps: []string{"generatorSem", "validate", "genkit"},
 			New: func() any {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
@@ -135,69 +132,24 @@ func definitions() []simpledi.Definition {
 		},
 		{
 			ID:   "summaryGenerateUsecase",
-			Deps: []string{"validate", "genkit", "valkey"},
+			Deps: []string{"generatorSem", "logger", "validate", "genkit"},
 			New: func() any {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				logger := simpledi.Get[*slog.Logger]("logger")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				// client := simpledi.Get[*genkit_stub.Client]("genkit_stub")
-				valkey := simpledi.Get[*valkey.Client]("valkey")
-				postgres := simpledi.Get[*postgres.DB]("postgres")
 				return summary_generate.NewUsecase(
 					generatorSem,
 					logger,
 					validate,
 					client,
-					valkey,
-					postgres,
 				)
-			},
-		},
-		{
-			ID:   "valkey",
-			Deps: []string{"config"},
-			New: func() any {
-				cfg := simpledi.Get[config.Config]("config")
-				return valkey.New(cfg.Valkey)
-			},
-			Close: func() error {
-				valkey := simpledi.Get[*valkey.Client]("valkey")
-				return valkey.Close()
-			},
-		},
-		{
-			ID:   "postgres",
-			Deps: []string{"config"},
-			New: func() any {
-				cfg := simpledi.Get[config.Config]("config")
-				return postgres.New(cfg.Postgres)
-			},
-			Close: func() error {
-				postgres := simpledi.Get[*postgres.DB]("postgres")
-				return postgres.Close()
 			},
 		},
 		{
 			ID: "genkit_stub",
 			New: func() any {
 				return genkit_stub.New()
-			},
-		},
-		{
-			ID:   "summaryGetUsecase",
-			Deps: []string{"logger", "validate", "valkey", "postgres"},
-			New: func() any {
-				logger := simpledi.Get[*slog.Logger]("logger")
-				validate := simpledi.Get[*validator.Validate]("validate")
-				valkey := simpledi.Get[*valkey.Client]("valkey")
-				postgres := simpledi.Get[*postgres.DB]("postgres")
-				return summary_get.NewUsecase(
-					logger,
-					validate,
-					valkey,
-					postgres,
-				)
 			},
 		},
 		{

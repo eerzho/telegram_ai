@@ -5,8 +5,6 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
-	"github.com/eerzho/telegram-ai/internal/adapter/postgres"
-	"github.com/eerzho/telegram-ai/internal/adapter/valkey"
 	"github.com/eerzho/telegram-ai/pkg/bodysize"
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	"github.com/eerzho/telegram-ai/pkg/httpserver"
@@ -26,8 +24,6 @@ type Config struct {
 	HTTPServer httpserver.Config
 	CORS       cors.Config
 	Genkit     genkit.Config
-	Valkey     valkey.Config
-	Postgres   postgres.Config
 	BodySize   bodysize.Config
 }
 
