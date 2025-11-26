@@ -13,14 +13,18 @@ import (
 	"github.com/eerzho/telegram-ai/config"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
-	"github.com/eerzho/telegram-ai/internal/health/health_check"
-	"github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
-	"github.com/eerzho/telegram-ai/internal/response/response_generate"
-	"github.com/eerzho/telegram-ai/internal/summary/summary_generate"
-	"github.com/eerzho/telegram-ai/pkg/httpserver"
+	healthcheck "github.com/eerzho/telegram-ai/internal/health/health_check"
+	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
+	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
+	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
+	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
+)
+
+const (
+	shutdownTimeout = 10 // second
 )
 
 func main() {
@@ -61,10 +65,10 @@ func run(ctx context.Context) error {
 	case err := <-serverErrs:
 		return fmt.Errorf("server: %w", err)
 	case <-ctx.Done():
-		lgr.Info("shutdown signal received")
+		lgr.InfoContext(ctx, "shutdown signal received")
 	}
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
 	defer shutdownCancel()
 
 	if err := httpServer.Shutdown(shutdownCtx); err != nil {
@@ -73,10 +77,10 @@ func run(ctx context.Context) error {
 
 	err := simpledi.Close()
 	if err != nil {
-		lgr.Warn("failed to close container", slog.Any("error", err))
+		lgr.WarnContext(shutdownCtx, "failed to close container", slog.Any("error", err))
 	}
 
-	lgr.Info("http server stopped")
+	lgr.InfoContext(shutdownCtx, "http server stopped")
 
 	return nil
 }
@@ -116,7 +120,7 @@ func definitions() []simpledi.Definition {
 			Deps: []string{"config"},
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
-				return health_check.NewUsecase(cfg.App.Version)
+				return healthcheck.NewUsecase(cfg.App.Version)
 			},
 		},
 		{
@@ -126,7 +130,7 @@ func definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return response_generate.NewUsecase(generatorSem, validate, client)
+				return responsegenerate.NewUsecase(generatorSem, validate, client)
 			},
 		},
 		{
@@ -136,7 +140,7 @@ func definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return summary_generate.NewUsecase(
+				return summarygenerate.NewUsecase(
 					generatorSem,
 					validate,
 					client,
@@ -158,7 +162,7 @@ func definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return improvement_generate.NewUsecase(generatorSem, validate, client)
+				return improvementgenerate.NewUsecase(generatorSem, validate, client)
 			},
 		},
 	}

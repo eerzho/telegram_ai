@@ -1,4 +1,4 @@
-package summary_generate
+package summarygenerate
 
 import (
 	"cmp"
@@ -12,6 +12,10 @@ import (
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
+)
+
+const (
+	generationTimeout = 30 // second
 )
 
 type Generator interface {
@@ -65,7 +69,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		genCtx, genCancel := context.WithTimeoutCause(ctx, 30*time.Second, domain.ErrGenerationTimeout)
+		genCtx, genCancel := context.WithTimeoutCause(ctx, generationTimeout*time.Second, domain.ErrGenerationTimeout)
 		defer genCancel()
 
 		var builder strings.Builder

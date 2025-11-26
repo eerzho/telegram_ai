@@ -1,4 +1,4 @@
-package summary_generate
+package summarygenerate
 
 import (
 	"log/slog"
@@ -17,51 +17,27 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 		input, err := json.Decode[Input](r)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to json decode", slog.Any("error", err))
-			json.EncodeError(w, r, err)
+			json.EncodeError(w, err)
 			return
 		}
 
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
 			logger.Log(ctx, domain.LogLevel(err), "failed to generate summary", slog.Any("error", err))
-			json.EncodeError(w, r, domain.MapToJSONError(err))
+			json.EncodeError(w, domain.MapToJSONError(err))
 			return
 		}
 
 		sseWriter, err := sse.NewWriter(w)
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to create sse writer", slog.Any("error", err))
-			json.EncodeError(w, r, err)
+			json.EncodeError(w, err)
 			return
 		}
 		defer sseWriter.Close()
 
-		if err := sseWriter.Write(ctx, sse.Event{Name: "start"}); err != nil {
-			logger.ErrorContext(ctx, "failed to write", slog.Any("error", err))
-			return
-		}
-
-		for {
-			select {
-			case text, ok := <-output.TextChan:
-				if !ok {
-					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {
-						logger.ErrorContext(ctx, "failed to write", slog.Any("error", err))
-					}
-					return
-				}
-				if err := sseWriter.Write(ctx, sse.Event{Name: "append", Data: text}); err != nil {
-					logger.ErrorContext(ctx, "failed to write", slog.Any("error", err))
-					_ = sseWriter.Write(ctx, sse.Event{Name: "stop_with_error", Data: "Please try again later."})
-					return
-				}
-			case err := <-output.ErrChan:
-				if err != nil {
-					logger.ErrorContext(ctx, "failed to generate summary", slog.Any("error", err))
-					_ = sseWriter.Write(ctx, sse.Event{Name: "stop_with_error", Data: "Please try again later."})
-					return
-				}
-			}
+		if err = sseWriter.StreamFrom(ctx, &output); err != nil {
+			logger.ErrorContext(ctx, "stream error", slog.Any("error", err))
 		}
 	})
 }

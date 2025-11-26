@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/google/uuid"
 )
 
-func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
+func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
@@ -22,12 +23,12 @@ func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 			w.Header().Set("X-Request-Id", requestID)
 			rw := &responseWriter{ResponseWriter: w}
 
-			ctx := context.WithValue(r.Context(), "request_id", requestID)
+			ctx := context.WithValue(r.Context(), logger.RequestIDKey, requestID)
 			r = r.WithContext(ctx)
 
 			next.ServeHTTP(rw, r)
 
-			logger.InfoContext(r.Context(), "http request",
+			lgr.InfoContext(r.Context(), "http request",
 				slog.String("method", r.Method),
 				slog.String("url_path", r.URL.Path),
 				slog.String("query", r.URL.RawQuery),

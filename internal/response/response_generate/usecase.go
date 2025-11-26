@@ -1,4 +1,4 @@
-package response_generate
+package responsegenerate
 
 import (
 	"cmp"
@@ -10,6 +10,10 @@ import (
 	"github.com/eerzho/telegram-ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
+)
+
+const (
+	generationTimeout = 20 // second
 )
 
 type Generator interface {
@@ -62,7 +66,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		defer close(textChan)
 		defer close(errChan)
 
-		genCtx, cancel := context.WithTimeoutCause(ctx, 20*time.Second, domain.ErrGenerationTimeout)
+		genCtx, cancel := context.WithTimeoutCause(ctx, generationTimeout*time.Second, domain.ErrGenerationTimeout)
 		defer cancel()
 
 		err := u.generator.GenerateResponse(genCtx, dialog,

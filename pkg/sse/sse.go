@@ -18,6 +18,10 @@ var (
 	ErrClientDisconnected    = errors.New("client disconnected")
 )
 
+type Streamer interface {
+	Next() (Event, bool)
+}
+
 type Writer struct {
 	w  *bufio.Writer
 	f  http.Flusher
@@ -46,52 +50,64 @@ func NewWriter(w http.ResponseWriter) (*Writer, error) {
 	}, nil
 }
 
-func (s *Writer) Write(ctx context.Context, e Event) error {
+func (w *Writer) Write(ctx context.Context, e Event) error {
 	select {
 	case <-ctx.Done():
 		return fmt.Errorf("sse: %w", ErrClientDisconnected)
 	default:
 	}
 
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	w.mu.Lock()
+	defer w.mu.Unlock()
 
 	if e.ID != 0 {
-		if _, err := fmt.Fprintf(s.w, "id: %d\n", e.ID); err != nil {
+		if _, err := fmt.Fprintf(w.w, "id: %d\n", e.ID); err != nil {
 			return fmt.Errorf("sse write: %w", err)
 		}
 	}
 	if e.Name != "" {
-		if _, err := fmt.Fprintf(s.w, "event: %s\n", e.Name); err != nil {
+		if _, err := fmt.Fprintf(w.w, "event: %s\n", e.Name); err != nil {
 			return fmt.Errorf("sse write: %w", err)
 		}
 	}
 	if e.Data != "" {
-		if _, err := fmt.Fprintf(s.w, "data: %s\n", e.Data); err != nil {
+		if _, err := fmt.Fprintf(w.w, "data: %s\n", e.Data); err != nil {
 			return fmt.Errorf("sse write: %w", err)
 		}
 	}
 	if e.Retry != 0 {
-		if _, err := fmt.Fprintf(s.w, "retry: %d\n", e.Retry); err != nil {
+		if _, err := fmt.Fprintf(w.w, "retry: %d\n", e.Retry); err != nil {
 			return fmt.Errorf("sse write: %w", err)
 		}
 	}
-	if _, err := s.w.WriteString("\n"); err != nil {
+	if _, err := w.w.WriteString("\n"); err != nil {
 		return fmt.Errorf("sse write: %w", err)
 	}
-	return s.flush()
+	return w.flush()
 }
 
-func (s *Writer) Close() error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.flush()
+func (w *Writer) StreamFrom(ctx context.Context, s Streamer) error {
+	for {
+		event, done := s.Next()
+		if err := w.Write(ctx, event); err != nil {
+			return err
+		}
+		if done {
+			return nil
+		}
+	}
 }
 
-func (s *Writer) flush() error {
-	if err := s.w.Flush(); err != nil {
+func (w *Writer) Close() error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.flush()
+}
+
+func (w *Writer) flush() error {
+	if err := w.w.Flush(); err != nil {
 		return fmt.Errorf("sse flush: %w", err)
 	}
-	s.f.Flush()
+	w.f.Flush()
 	return nil
 }

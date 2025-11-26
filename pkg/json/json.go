@@ -47,13 +47,13 @@ func Decode[T any](r *http.Request) (T, error) {
 		return v, fmt.Errorf("json decode: %w", ErrInvalidContentType)
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
+	if err = json.NewDecoder(r.Body).Decode(&v); err != nil {
 		return v, fmt.Errorf("json decode: %w", err)
 	}
 	return v, nil
 }
 
-func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) {
+func Encode[T any](w http.ResponseWriter, status int, v T) {
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(v); err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
@@ -64,7 +64,7 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) {
 	_, _ = w.Write(buf.Bytes())
 }
 
-func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
+func EncodeError(w http.ResponseWriter, err error) {
 	var jsonErr Error
 	if !errors.As(err, &jsonErr) {
 		jsonErr = Error{
@@ -72,5 +72,5 @@ func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
 			Message: http.StatusText(http.StatusInternalServerError),
 		}
 	}
-	Encode(w, r, jsonErr.Status, jsonErr)
+	Encode(w, jsonErr.Status, jsonErr)
 }

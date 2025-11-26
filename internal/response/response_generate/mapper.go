@@ -1,4 +1,4 @@
-package response_generate
+package responsegenerate
 
 import "github.com/eerzho/telegram-ai/internal/domain"
 

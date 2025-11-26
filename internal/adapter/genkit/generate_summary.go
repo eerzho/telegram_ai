@@ -28,7 +28,7 @@ func (c *Client) GenerateSummary(
 
 	_, err := prompt.Execute(ctx,
 		ai.WithInput(input),
-		ai.WithStreaming(func(ctx context.Context, chunk *ai.ModelResponseChunk) error {
+		ai.WithStreaming(func(_ context.Context, chunk *ai.ModelResponseChunk) error {
 			text := chunk.Text()
 			if text != "" {
 				return onChunk(text)

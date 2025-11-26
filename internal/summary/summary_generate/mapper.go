@@ -1,4 +1,4 @@
-package summary_generate
+package summarygenerate
 
 import "github.com/eerzho/telegram-ai/internal/domain"
 

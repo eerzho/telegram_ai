@@ -24,7 +24,7 @@ func (c *Client) GenerateImprovement(
 	input := map[string]any{"text": text}
 	_, err := prompt.Execute(ctx,
 		ai.WithInput(input),
-		ai.WithStreaming(func(ctx context.Context, aiChunk *ai.ModelResponseChunk) error {
+		ai.WithStreaming(func(_ context.Context, aiChunk *ai.ModelResponseChunk) error {
 			chunk := aiChunk.Text()
 			if chunk != "" {
 				return onChunk(chunk)

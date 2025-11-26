@@ -1,4 +1,4 @@
-package health_check
+package healthcheck
 
 import "context"
 
@@ -14,7 +14,7 @@ func NewUsecase(
 	}
 }
 
-func (h *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
+func (h *Usecase) Execute(_ context.Context, _ Input) (Output, error) {
 	return Output{
 		Status:  "ok",
 		Version: h.version,

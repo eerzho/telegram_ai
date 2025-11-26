@@ -1,4 +1,4 @@
-package health_check
+package healthcheck
 
 import (
 	"log/slog"
@@ -18,10 +18,10 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 				"failed to health check",
 				slog.Any("error", err),
 			)
-			json.EncodeError(w, r, domain.MapToJSONError(err))
+			json.EncodeError(w, domain.MapToJSONError(err))
 			return
 		}
 
-		json.Encode(w, r, http.StatusOK, output)
+		json.Encode(w, http.StatusOK, output)
 	})
 }

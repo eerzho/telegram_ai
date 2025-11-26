@@ -6,11 +6,11 @@ import (
 
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/config"
-	"github.com/eerzho/telegram-ai/internal/health/health_check"
-	"github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
-	"github.com/eerzho/telegram-ai/internal/response/response_generate"
-	"github.com/eerzho/telegram-ai/internal/summary/summary_generate"
-	"github.com/eerzho/telegram-ai/pkg/bodysize"
+	healthcheck "github.com/eerzho/telegram-ai/internal/health/health_check"
+	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
+	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
+	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
+	bodysize "github.com/eerzho/telegram-ai/pkg/body_size"
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	"github.com/eerzho/telegram-ai/pkg/logging"
 	"github.com/eerzho/telegram-ai/pkg/recovery"
@@ -21,15 +21,15 @@ func Handler() http.Handler {
 	cfg := simpledi.Get[config.Config]("config")
 	logger := simpledi.Get[*slog.Logger]("logger")
 
-	healthCheckUsecase := simpledi.Get[*health_check.Usecase]("healthCheckUsecase")
-	responseGenerateUsecase := simpledi.Get[*response_generate.Usecase]("responseGenerateUsecase")
-	summaryGenerateUsecase := simpledi.Get[*summary_generate.Usecase]("summaryGenerateUsecase")
-	improvementGenerateUsecase := simpledi.Get[*improvement_generate.Usecase]("improvementGenerateUsecase")
+	healthCheckUsecase := simpledi.Get[*healthcheck.Usecase]("healthCheckUsecase")
+	responseGenerateUsecase := simpledi.Get[*responsegenerate.Usecase]("responseGenerateUsecase")
+	summaryGenerateUsecase := simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase")
+	improvementGenerateUsecase := simpledi.Get[*improvementgenerate.Usecase]("improvementGenerateUsecase")
 
-	mux.Handle("GET /_hc", health_check.HTTPv1(logger, healthCheckUsecase))
-	mux.Handle("POST /v1/responses/generate", response_generate.HTTPv1(logger, responseGenerateUsecase))
-	mux.Handle("POST /v1/summaries/generate", summary_generate.HTTPv1(logger, summaryGenerateUsecase))
-	mux.Handle("POST /v1/improvements/generate", improvement_generate.HTTPv1(logger, improvementGenerateUsecase))
+	mux.Handle("GET /_hc", healthcheck.HTTPv1(logger, healthCheckUsecase))
+	mux.Handle("POST /v1/responses/generate", responsegenerate.HTTPv1(logger, responseGenerateUsecase))
+	mux.Handle("POST /v1/summaries/generate", summarygenerate.HTTPv1(logger, summaryGenerateUsecase))
+	mux.Handle("POST /v1/improvements/generate", improvementgenerate.HTTPv1(logger, improvementGenerateUsecase))
 	mux.Handle("/", http.NotFoundHandler())
 
 	var handler http.Handler = mux

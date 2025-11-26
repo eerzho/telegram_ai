@@ -5,11 +5,11 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
-	"github.com/eerzho/telegram-ai/pkg/bodysize"
+	bodysize "github.com/eerzho/telegram-ai/pkg/body_size"
 	"github.com/eerzho/telegram-ai/pkg/cors"
-	"github.com/eerzho/telegram-ai/pkg/httpserver"
+	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/logger"
-	_ "github.com/joho/godotenv/autoload"
+	"github.com/joho/godotenv"
 )
 
 type App struct {
@@ -36,6 +36,8 @@ func MustNew() Config {
 }
 
 func New() (Config, error) {
+	_ = godotenv.Load()
+
 	cfg, err := env.ParseAs[Config]()
 	if err != nil {
 		return Config{}, fmt.Errorf("config: %w", err)
