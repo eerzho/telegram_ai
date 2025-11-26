@@ -43,9 +43,6 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) http.Handler {
 
 		for {
 			select {
-			case <-ctx.Done():
-				logger.InfoContext(ctx, "context canceled", slog.Any("error", ctx.Err()))
-				return
 			case text, ok := <-output.TextChan:
 				if !ok {
 					if err := sseWriter.Write(ctx, sse.Event{Name: "stop"}); err != nil {

@@ -43,6 +43,7 @@ func Middleware(logger *slog.Logger) func(http.Handler) http.Handler {
 
 type responseWriter struct {
 	http.ResponseWriter
+
 	size       int
 	statusCode int
 }

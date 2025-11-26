@@ -61,7 +61,7 @@ func Encode[T any](w http.ResponseWriter, r *http.Request, status int, v T) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(buf.Bytes())
+	_, _ = w.Write(buf.Bytes())
 }
 
 func EncodeError(w http.ResponseWriter, r *http.Request, err error) {
