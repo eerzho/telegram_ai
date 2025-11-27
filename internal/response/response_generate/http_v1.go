@@ -33,7 +33,7 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) httphandler.HandlerFunc {
 		}
 		defer sseWriter.Close()
 
-		if err = sseWriter.StreamFrom(ctx, &output); err != nil {
+		if err = sseWriter.Stream(ctx, &output); err != nil {
 			logger.ErrorContext(ctx, "stream error", slog.Any("error", errorhelp.WithOP(op, err)))
 		}
 

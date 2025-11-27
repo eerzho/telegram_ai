@@ -1,7 +1,6 @@
 package healthcheck
 
 import (
-	"log/slog"
 	"net/http"
 
 	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
@@ -9,7 +8,7 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/json"
 )
 
-func HTTPv1(logger *slog.Logger, usecase *Usecase) httphandler.HandlerFunc {
+func HTTPv1(usecase *Usecase) httphandler.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "health_check.HTTPv1"
 

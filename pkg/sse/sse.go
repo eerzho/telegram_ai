@@ -50,7 +50,25 @@ func NewWriter(w http.ResponseWriter) (*Writer, error) {
 	}, nil
 }
 
-func (w *Writer) Write(ctx context.Context, e Event) error {
+func (w *Writer) Stream(ctx context.Context, s Streamer) error {
+	for {
+		event, done := s.Next()
+		if err := w.write(ctx, event); err != nil {
+			return err
+		}
+		if done {
+			return nil
+		}
+	}
+}
+
+func (w *Writer) Close() error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.flush()
+}
+
+func (w *Writer) write(ctx context.Context, e Event) error {
 	select {
 	case <-ctx.Done():
 		return fmt.Errorf("sse: %w", ErrClientDisconnected)
@@ -83,24 +101,6 @@ func (w *Writer) Write(ctx context.Context, e Event) error {
 	if _, err := w.w.WriteString("\n"); err != nil {
 		return fmt.Errorf("sse write: %w", err)
 	}
-	return w.flush()
-}
-
-func (w *Writer) StreamFrom(ctx context.Context, s Streamer) error {
-	for {
-		event, done := s.Next()
-		if err := w.Write(ctx, event); err != nil {
-			return err
-		}
-		if done {
-			return nil
-		}
-	}
-}
-
-func (w *Writer) Close() error {
-	w.mu.Lock()
-	defer w.mu.Unlock()
 	return w.flush()
 }
 
