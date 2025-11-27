@@ -27,10 +27,12 @@ func Handler() http.Handler {
 	summaryGenerateUsecase := simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase")
 	improvementGenerateUsecase := simpledi.Get[*improvementgenerate.Usecase]("improvementGenerateUsecase")
 
-	mux.Handle("GET /_hc", httphandler.Wrap(healthcheck.HTTPv1(logger, healthCheckUsecase)))
-	mux.Handle("POST /v1/responses/generate", httphandler.Wrap(responsegenerate.HTTPv1(logger, responseGenerateUsecase)))
-	mux.Handle("POST /v1/summaries/generate", httphandler.Wrap(summarygenerate.HTTPv1(logger, summaryGenerateUsecase)))
-	mux.Handle("POST /v1/improvements/generate", httphandler.Wrap(improvementgenerate.HTTPv1(logger, improvementGenerateUsecase)))
+	errorHandler := errorHandler(logger)
+
+	mux.Handle("GET /_hc", httphandler.Wrap(healthcheck.HTTPv1(logger, healthCheckUsecase), errorHandler))
+	mux.Handle("POST /v1/responses/generate", httphandler.Wrap(responsegenerate.HTTPv1(logger, responseGenerateUsecase), errorHandler))
+	mux.Handle("POST /v1/summaries/generate", httphandler.Wrap(summarygenerate.HTTPv1(logger, summaryGenerateUsecase), errorHandler))
+	mux.Handle("POST /v1/improvements/generate", httphandler.Wrap(improvementgenerate.HTTPv1(logger, improvementGenerateUsecase), errorHandler))
 	mux.Handle("/", http.NotFoundHandler())
 
 	var handler http.Handler = mux
