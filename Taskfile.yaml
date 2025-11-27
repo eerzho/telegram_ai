@@ -4,7 +4,7 @@ dotenv:
   - .env
 
 vars:
-  IMAGE_NAME: http-prod
+  IMAGE_NAME: telegram-ai-http-prod
 
 tasks:
   http:dev:
@@ -47,8 +47,3 @@ tasks:
     desc: "Run lint on Golang"
     cmds:
       - golangci-lint run --config .golangci.yml --fix
-
-  default:
-    desc: "Show available tasks"
-    cmds:
-      - task --list
