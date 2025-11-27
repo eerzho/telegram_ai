@@ -12,6 +12,7 @@ import (
 	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
 	bodysize "github.com/eerzho/telegram-ai/pkg/body_size"
 	"github.com/eerzho/telegram-ai/pkg/cors"
+	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
 	"github.com/eerzho/telegram-ai/pkg/logging"
 	"github.com/eerzho/telegram-ai/pkg/recovery"
 )
@@ -26,10 +27,10 @@ func Handler() http.Handler {
 	summaryGenerateUsecase := simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase")
 	improvementGenerateUsecase := simpledi.Get[*improvementgenerate.Usecase]("improvementGenerateUsecase")
 
-	mux.Handle("GET /_hc", healthcheck.HTTPv1(logger, healthCheckUsecase))
-	mux.Handle("POST /v1/responses/generate", responsegenerate.HTTPv1(logger, responseGenerateUsecase))
-	mux.Handle("POST /v1/summaries/generate", summarygenerate.HTTPv1(logger, summaryGenerateUsecase))
-	mux.Handle("POST /v1/improvements/generate", improvementgenerate.HTTPv1(logger, improvementGenerateUsecase))
+	mux.Handle("GET /_hc", httphandler.Wrap(healthcheck.HTTPv1(logger, healthCheckUsecase)))
+	mux.Handle("POST /v1/responses/generate", httphandler.Wrap(responsegenerate.HTTPv1(logger, responseGenerateUsecase)))
+	mux.Handle("POST /v1/summaries/generate", httphandler.Wrap(summarygenerate.HTTPv1(logger, summaryGenerateUsecase)))
+	mux.Handle("POST /v1/improvements/generate", httphandler.Wrap(improvementgenerate.HTTPv1(logger, improvementGenerateUsecase)))
 	mux.Handle("/", http.NotFoundHandler())
 
 	var handler http.Handler = mux
