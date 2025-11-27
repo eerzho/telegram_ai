@@ -29,7 +29,10 @@ func Handler() http.Handler {
 
 	errorHandler := errorHandler(logger)
 
-	mux.Handle("GET /_hc", httphandler.Wrap(healthcheck.HTTPv1(healthCheckUsecase), errorHandler))
+	mux.Handle(
+		"GET /_hc",
+		httphandler.Wrap(healthcheck.HTTPv1(healthCheckUsecase), errorHandler),
+	)
 	mux.Handle(
 		"POST /v1/responses/generate",
 		httphandler.Wrap(responsegenerate.HTTPv1(logger, responseGenerateUsecase), errorHandler),
@@ -42,7 +45,6 @@ func Handler() http.Handler {
 		"POST /v1/improvements/generate",
 		httphandler.Wrap(improvementgenerate.HTTPv1(logger, improvementGenerateUsecase), errorHandler),
 	)
-	mux.Handle("/", http.NotFoundHandler())
 
 	var handler http.Handler = mux
 	handler = bodysize.Middleware(cfg.BodySize)(handler)
