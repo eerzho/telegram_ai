@@ -1,0 +1,39 @@
+failure-threshold: warning
+format: tty
+
+trustedRegistries:
+  - docker.io
+  - gcr.io
+
+override:
+  error:
+    - DL3000 # Use absolute WORKDIR
+    - DL3001 # Invalid commands in container
+    - DL3002 # Last USER should not be root
+    - DL3003 # Use WORKDIR instead of RUN cd
+    - DL3004 # Do not use sudo
+    - DL3006 # Always tag image version
+    - DL3007 # Do not use latest tag
+    - DL3008 # Pin versions in apt-get
+    - DL3009 # Delete apt-get lists
+    - DL3015 # Use --no-install-recommends
+    - DL3018 # Pin versions in apk add
+    - DL3020 # Use COPY instead of ADD
+    - DL3025 # Use JSON notation for CMD/ENTRYPOINT
+    - DL3026 # Use only allowed registries
+    - DL4000 # MAINTAINER is deprecated
+    - DL4006 # Set SHELL option -o pipefail
+    - SC2086 # Double quote to prevent globbing
+
+  warning:
+    - DL3013 # Pin versions in pip
+    - DL3016 # Pin versions in npm
+    - DL3028 # Pin versions in gem
+    - DL3042 # Avoid pip cache
+    - DL3059 # Multiple consecutive RUN
+
+  info:
+    - DL3011 # Valid UNIX ports
+
+  style:
+    - DL3010 # Use ADD for archives

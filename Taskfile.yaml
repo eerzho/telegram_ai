@@ -1,0 +1,54 @@
+version: "3"
+
+dotenv:
+  - .env
+
+vars:
+  IMAGE_NAME: http-prod
+
+tasks:
+  http:dev:
+    desc: "Run http for dev"
+    cmds:
+      - go run ./cmd/http/main.go
+
+  http:build:
+    desc: "Build http"
+    cmds:
+      - go build -ldflags="-s -w" -o ./main ./cmd/http/main.go
+
+  http:run:
+    desc: "Run http"
+    cmds:
+      - ./main
+
+  docker:http:build:
+    desc: "Build docker image for http"
+    cmds:
+      - docker build --target prod -t {{.IMAGE_NAME}}  -f ./docker/http/Dockerfile .
+
+  docker:http:run:
+    desc: "Run docker image for http"
+    cmds:
+      - docker run --rm --env-file .env -p 80:80 {{.IMAGE_NAME}}
+
+  lint:
+    desc: "Run all lints"
+    deps:
+      - lint:docker
+      - lint:golang
+
+  lint:docker:
+    desc: "Run lint on Dockerfile"
+    cmds:
+      - hadolint ./docker/http/Dockerfile
+
+  lint:golang:
+    desc: "Run lint on Golang"
+    cmds:
+      - golangci-lint run --config .golangci.yml --fix
+
+  default:
+    desc: "Show available tasks"
+    cmds:
+      - task --list
