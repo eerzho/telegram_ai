@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
+	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/genkit"
 )
@@ -21,7 +22,7 @@ func (c *Client) GenerateResponse(
 	promptName, input := c.createInputForResponse(dialog)
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
-		return fmt.Errorf("%s: %w", op, ErrPromptNotFound)
+		return errorhelp.WithOP(op, ErrPromptNotFound)
 	}
 
 	_, err := prompt.Execute(ctx,
@@ -35,7 +36,7 @@ func (c *Client) GenerateResponse(
 		}),
 	)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return errorhelp.WithOP(op, err)
 	}
 
 	return nil

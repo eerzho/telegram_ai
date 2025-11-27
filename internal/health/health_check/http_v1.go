@@ -1,10 +1,10 @@
 package healthcheck
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
+	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
 	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
 	"github.com/eerzho/telegram-ai/pkg/json"
 )
@@ -18,7 +18,7 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) httphandler.HandlerFunc {
 
 		output, err := usecase.Execute(ctx, Input{})
 		if err != nil {
-			return fmt.Errorf("%s: %w", op, err)
+			return errorhelp.WithOP(op, err)
 		}
 
 		json.Encode(w, http.StatusOK, output)

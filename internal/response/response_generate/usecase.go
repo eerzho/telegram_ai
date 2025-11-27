@@ -3,11 +3,11 @@ package responsegenerate
 import (
 	"cmp"
 	"context"
-	"fmt"
 	"slices"
 	"time"
 
 	"github.com/eerzho/telegram-ai/internal/domain"
+	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
 )
@@ -46,12 +46,12 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 	const op = "response_generate.Usecase.Execute"
 
 	if err := u.validate.Struct(input); err != nil {
-		return Output{}, fmt.Errorf("%s: %w", op, err)
+		return Output{}, errorhelp.WithOP(op, err)
 	}
 
 	ok := u.sem.TryAcquire(1)
 	if !ok {
-		return Output{}, fmt.Errorf("%s: %w", op, domain.ErrTooManyGenerateRequests)
+		return Output{}, errorhelp.WithOP(op, domain.ErrTooManyGenerateRequests)
 	}
 
 	slices.SortFunc(input.Messages, func(a, b InputMessage) int {
@@ -82,7 +82,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		if err != nil {
 			select {
 			case <-genCtx.Done():
-			case errChan <- fmt.Errorf("%s: %w", op, err):
+			case errChan <- errorhelp.WithOP(op, err):
 			}
 			return
 		}

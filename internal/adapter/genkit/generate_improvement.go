@@ -2,8 +2,8 @@ package genkit
 
 import (
 	"context"
-	"fmt"
 
+	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/genkit"
 )
@@ -18,7 +18,7 @@ func (c *Client) GenerateImprovement(
 	promptName := "improvement"
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
-		return fmt.Errorf("%s: %w", op, ErrPromptNotFound)
+		return errorhelp.WithOP(op, ErrPromptNotFound)
 	}
 
 	input := map[string]any{"text": text}
@@ -33,7 +33,7 @@ func (c *Client) GenerateImprovement(
 		}),
 	)
 	if err != nil {
-		return fmt.Errorf("%s: %w", op, err)
+		return errorhelp.WithOP(op, err)
 	}
 	return nil
 }
