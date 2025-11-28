@@ -12,6 +12,7 @@ require (
 	github.com/firebase/genkit/go v1.1.0
 	github.com/go-playground/validator/v10 v10.28.0
 	github.com/google/uuid v1.6.0
+	github.com/lmittmann/tint v1.1.2
 	golang.org/x/sync v0.17.0
 )
 

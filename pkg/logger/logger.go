@@ -6,6 +6,8 @@ import (
 	"io"
 	"log/slog"
 	"os"
+
+	"github.com/lmittmann/tint"
 )
 
 var (
@@ -46,15 +48,17 @@ func New(cfg Config) (*slog.Logger, error) {
 }
 
 func createHandler(format string, level slog.Level, w io.Writer) (slog.Handler, error) {
-	opts := &slog.HandlerOptions{
-		Level: level,
-	}
 	var handler slog.Handler
 	switch format {
 	case "json":
-		handler = slog.NewJSONHandler(w, opts)
+		handler = slog.NewJSONHandler(w, &slog.HandlerOptions{
+			Level: level,
+		})
 	case "text":
-		handler = slog.NewTextHandler(w, opts)
+		handler = tint.NewHandler(w, &tint.Options{
+			AddSource: true,
+			Level:     level,
+		})
 	default:
 		return nil, ErrInvalidFormat
 	}
