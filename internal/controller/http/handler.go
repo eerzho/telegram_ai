@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/eerzho/simpledi"
-	"github.com/eerzho/telegram-ai/config"
+	"github.com/eerzho/telegram-ai/internal/config"
 	healthcheck "github.com/eerzho/telegram-ai/internal/health/health_check"
 	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
 	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"

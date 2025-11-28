@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/eerzho/simpledi"
-	"github.com/eerzho/telegram-ai/config"
 	_ "github.com/eerzho/telegram-ai/docs"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
+	"github.com/eerzho/telegram-ai/internal/config"
 	"github.com/eerzho/telegram-ai/internal/controller/http"
 	healthcheck "github.com/eerzho/telegram-ai/internal/health/health_check"
 	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"

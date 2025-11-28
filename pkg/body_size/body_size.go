@@ -4,13 +4,7 @@ import (
 	"net/http"
 )
 
-const (
-	MB = 1 << 20 // 1048576 bytes
-)
-
-type Config struct {
-	Max int `env:"BODY_SIZE_MAX" envDefault:"5"`
-}
+const MB = 1 << 20 // 1048576 bytes
 
 func Middleware(cfg Config) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
