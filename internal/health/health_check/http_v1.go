@@ -8,6 +8,17 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/json"
 )
 
+// HTTPv1 godoc
+//
+// @summary health check
+// @tags health
+//
+// @produce json
+// @success 200 {object} Output
+// @failure 400 {object} json.Error
+// @failure 500 {object} json.Error
+//
+// @router /_hc [get].
 func HTTPv1(usecase *Usecase) httphandler.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "health_check.HTTPv1"

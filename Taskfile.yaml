@@ -7,6 +7,12 @@ vars:
   IMAGE_NAME: telegram-ai-http-prod
 
 tasks:
+  pre:commit:
+    desc: "Prepare for commit"
+    deps:
+      - lint
+      - docs:swagger
+
   http:dev:
     desc: "Run http for dev"
     cmds:
@@ -47,3 +53,8 @@ tasks:
     desc: "Run lint on Golang"
     cmds:
       - golangci-lint run --config .golangci.yml --fix
+
+  docs:swagger:
+    desc: "Generate Swagger documentation"
+    cmds:
+      - swag init -g ./internal/controller/http/handler.go

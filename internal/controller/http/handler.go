@@ -15,8 +15,19 @@ import (
 	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
 	"github.com/eerzho/telegram-ai/pkg/logging"
 	"github.com/eerzho/telegram-ai/pkg/recovery"
+	swagger "github.com/swaggo/http-swagger"
 )
 
+// Handler godoc
+//
+// @title TelegramAI API
+//
+// @schemes http
+// @host localhost
+// @basePath /
+//
+// @externalDocs.description GitHub
+// @externalDocs.url https://github.com/eerzho/telegram-ai
 func Handler() http.Handler {
 	mux := http.NewServeMux()
 	cfg := simpledi.Get[config.Config]("config")
@@ -45,6 +56,14 @@ func Handler() http.Handler {
 		"POST /v1/improvements/generate",
 		httphandler.Wrap(improvementgenerate.HTTPv1(logger, improvementGenerateUsecase), errorHandler),
 	)
+
+	// Swagger UI routes
+	mux.Handle("/swagger/", swagger.WrapHandler)
+	// mux.Handle("GET /swagger/", httpSwagger.Handler(
+	// 	httpSwagger.URL("/swagger.json"),
+	// 	httpSwagger.DeepLinking(true),
+	// ))
+	// mux.Handle("GET /swagger.json", http.FileServer(http.Dir("docs")))
 
 	var handler http.Handler = mux
 	handler = bodysize.Middleware(cfg.BodySize)(handler)

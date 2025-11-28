@@ -1,0 +1,258 @@
+basePath: /
+definitions:
+  healthcheck.Output:
+    properties:
+      status:
+        type: string
+      version:
+        type: string
+    type: object
+  improvementgenerate.Input:
+    properties:
+      text:
+        minLength: 1
+        type: string
+    required:
+    - text
+    type: object
+  json.Error:
+    properties:
+      code:
+        type: string
+      details:
+        items:
+          $ref: '#/definitions/json.ErrorDetail'
+        type: array
+      message:
+        type: string
+    type: object
+  json.ErrorDetail:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  responsegenerate.Input:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/responsegenerate.InputMessage'
+        maxItems: 1000
+        minItems: 1
+        type: array
+      owner:
+        $ref: '#/definitions/responsegenerate.InputUser'
+    required:
+    - messages
+    - owner
+    type: object
+  responsegenerate.InputMessage:
+    properties:
+      date:
+        type: integer
+      sender:
+        $ref: '#/definitions/responsegenerate.InputUser'
+      text:
+        minLength: 1
+        type: string
+    required:
+    - date
+    - sender
+    - text
+    type: object
+  responsegenerate.InputUser:
+    properties:
+      chat_id:
+        minLength: 1
+        type: string
+      name:
+        minLength: 1
+        type: string
+    required:
+    - chat_id
+    - name
+    type: object
+  sse.Event:
+    properties:
+      data:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      retry:
+        description: milliseconds
+        type: integer
+    type: object
+  summarygenerate.Input:
+    properties:
+      language:
+        maxLength: 2
+        minLength: 2
+        type: string
+      messages:
+        items:
+          $ref: '#/definitions/summarygenerate.InputMessage'
+        maxItems: 1000
+        minItems: 1
+        type: array
+      owner:
+        $ref: '#/definitions/summarygenerate.InputSender'
+      peer:
+        $ref: '#/definitions/summarygenerate.InputSender'
+    required:
+    - language
+    - messages
+    - owner
+    - peer
+    type: object
+  summarygenerate.InputMessage:
+    properties:
+      date:
+        type: integer
+      sender:
+        $ref: '#/definitions/summarygenerate.InputSender'
+      text:
+        minLength: 1
+        type: string
+    required:
+    - date
+    - sender
+    - text
+    type: object
+  summarygenerate.InputSender:
+    properties:
+      chat_id:
+        minLength: 1
+        type: string
+      name:
+        minLength: 1
+        type: string
+    required:
+    - chat_id
+    - name
+    type: object
+externalDocs:
+  description: GitHub
+  url: https://github.com/eerzho/telegram-ai
+host: localhost
+info:
+  contact: {}
+  title: TelegramAI API
+paths:
+  /_hc:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/healthcheck.Output'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/json.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/json.Error'
+      summary: health check
+      tags:
+      - health
+  /v1/improvements/generate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/improvementgenerate.Input'
+      produces:
+      - application/json
+      - text/event-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sse.Event'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/json.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/json.Error'
+      summary: improvement generate
+      tags:
+      - improvement
+  /v1/responses/generate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/responsegenerate.Input'
+      produces:
+      - application/json
+      - text/event-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sse.Event'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/json.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/json.Error'
+      summary: response generate
+      tags:
+      - response
+  /v1/summaries/generate:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/summarygenerate.Input'
+      produces:
+      - application/json
+      - text/event-stream
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/sse.Event'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/json.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/json.Error'
+      summary: summary generate
+      tags:
+      - summary
+schemes:
+- http
+swagger: "2.0"
