@@ -57,11 +57,6 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, errorhelp.WithOP(op, domain.ErrTooManyGenerateRequests)
 	}
 
-	slices.SortFunc(input.Messages, func(a, b InputMessage) int {
-		return cmp.Compare(a.Date, b.Date)
-	})
-	dialog := inputToDialog(input)
-
 	textChan := make(chan string)
 	errChan := make(chan error)
 	go func() {
@@ -72,8 +67,12 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		genCtx, genCancel := context.WithTimeoutCause(ctx, generationTimeout*time.Second, domain.ErrGenerationTimeout)
 		defer genCancel()
 
+		slices.SortFunc(input.Messages, func(a, b InputMessage) int {
+			return cmp.Compare(a.Date, b.Date)
+		})
+
 		var builder strings.Builder
-		err := u.generator.GenerateSummary(genCtx, input.Language, dialog,
+		err := u.generator.GenerateSummary(genCtx, input.Language, input.ToDialog(),
 			func(chunk string) error {
 				builder.WriteString(chunk)
 				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})

@@ -1,6 +1,9 @@
 package responsegenerate
 
-import "github.com/eerzho/telegram-ai/pkg/sse"
+import (
+	"github.com/eerzho/telegram-ai/internal/domain"
+	"github.com/eerzho/telegram-ai/pkg/sse"
+)
 
 type Input struct {
 	Owner    InputUser      `json:"owner"    validate:"required"`
@@ -21,6 +24,31 @@ type InputMessage struct {
 type Output struct {
 	TextChan <-chan string
 	ErrChan  <-chan error
+}
+
+func (i Input) ToDialog() domain.Dialog {
+	messages := make([]domain.Message, 0, len(i.Messages))
+	for _, msg := range i.Messages {
+		messages = append(messages, msg.ToMessage())
+	}
+	return domain.Dialog{
+		Owner: domain.User{
+			ChatID:   i.Owner.ChatID,
+			Nickname: i.Owner.Nickname,
+		},
+		Messages: messages,
+	}
+}
+
+func (i InputMessage) ToMessage() domain.Message {
+	return domain.Message{
+		Sender: domain.User{
+			ChatID:   i.Sender.ChatID,
+			Nickname: i.Sender.Nickname,
+		},
+		Text: i.Text,
+		Date: i.Date,
+	}
 }
 
 func (o *Output) Next() (sse.Event, bool) {
