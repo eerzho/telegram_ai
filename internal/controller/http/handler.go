@@ -33,37 +33,37 @@ func Handler() http.Handler {
 	cfg := simpledi.Get[config.Config]("config")
 	logger := simpledi.Get[*slog.Logger]("logger")
 
-	healthCheckUsecase := simpledi.Get[*healthcheck.Usecase]("healthCheckUsecase")
-	responseGenerateUsecase := simpledi.Get[*responsegenerate.Usecase]("responseGenerateUsecase")
-	summaryGenerateUsecase := simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase")
-	improvementGenerateUsecase := simpledi.Get[*improvementgenerate.Usecase]("improvementGenerateUsecase")
-
 	errorHandler := errorHandler(logger)
+
+	mux.Handle("/swagger/", swagger.WrapHandler)
 
 	mux.Handle(
 		"GET /_hc",
-		httphandler.Wrap(healthcheck.HTTPv1(healthCheckUsecase), errorHandler),
+		httphandler.Wrap(healthcheck.HTTPv1(
+			simpledi.Get[*healthcheck.Usecase]("healthCheckUsecase"),
+		), errorHandler),
 	)
 	mux.Handle(
 		"POST /v1/responses/generate",
-		httphandler.Wrap(responsegenerate.HTTPv1(logger, responseGenerateUsecase), errorHandler),
+		httphandler.Wrap(responsegenerate.HTTPv1(
+			logger,
+			simpledi.Get[*responsegenerate.Usecase]("responseGenerateUsecase"),
+		), errorHandler),
 	)
 	mux.Handle(
 		"POST /v1/summaries/generate",
-		httphandler.Wrap(summarygenerate.HTTPv1(logger, summaryGenerateUsecase), errorHandler),
+		httphandler.Wrap(summarygenerate.HTTPv1(
+			logger,
+			simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase"),
+		), errorHandler),
 	)
 	mux.Handle(
 		"POST /v1/improvements/generate",
-		httphandler.Wrap(improvementgenerate.HTTPv1(logger, improvementGenerateUsecase), errorHandler),
+		httphandler.Wrap(improvementgenerate.HTTPv1(
+			logger,
+			simpledi.Get[*improvementgenerate.Usecase]("improvementGenerateUsecase"),
+		), errorHandler),
 	)
-
-	// Swagger UI routes
-	mux.Handle("/swagger/", swagger.WrapHandler)
-	// mux.Handle("GET /swagger/", httpSwagger.Handler(
-	// 	httpSwagger.URL("/swagger.json"),
-	// 	httpSwagger.DeepLinking(true),
-	// ))
-	// mux.Handle("GET /swagger.json", http.FileServer(http.Dir("docs")))
 
 	var handler http.Handler = mux
 	handler = bodysize.Middleware(cfg.BodySize)(handler)

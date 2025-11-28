@@ -34,7 +34,4 @@ task docker:http:build
 task docker:http:run
 ```
 
-3. Verify the server is running on `http://localhost`:
-```bash
-curl http://localhost/_hc
-```
+3. Open in your browser: http://localhost/swagger
