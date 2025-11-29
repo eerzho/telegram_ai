@@ -24,7 +24,7 @@ func MustNew(cfg Config) *slog.Logger {
 }
 
 func New(cfg Config) (*slog.Logger, error) {
-	slogLevel, err := stringToSlogLevel(cfg.Level)
+	slogLevel, err := cfg.SlogLevel()
 	if err != nil {
 		return nil, fmt.Errorf("logger: %w", err)
 	}
@@ -40,14 +40,14 @@ func New(cfg Config) (*slog.Logger, error) {
 	return logger, nil
 }
 
-func createHandler(format string, level slog.Level, w io.Writer) (slog.Handler, error) {
+func createHandler(format FormatType, level slog.Level, w io.Writer) (slog.Handler, error) {
 	var handler slog.Handler
 	switch format {
-	case "json":
+	case FormatJson:
 		handler = slog.NewJSONHandler(w, &slog.HandlerOptions{
 			Level: level,
 		})
-	case "text":
+	case FormatText:
 		handler = tint.NewHandler(w, &tint.Options{
 			AddSource: true,
 			Level:     level,
