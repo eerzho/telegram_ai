@@ -21,19 +21,19 @@ const (
 type Config struct {
 	AppName    string     `env:"APP_NAME,required"`
 	AppVersion string     `env:"APP_VERSION,required"`
-	Level      LevelType  `env:"LOGGER_LEVEL"         envDefault:"info"` // debug, info, warn, error
-	Format     FormatType `env:"LOGGER_FORMAT"        envDefault:"json"` // text, json
+	Level      LevelType  `env:"LOGGER_LEVEL"         envDefault:"info"`
+	Format     FormatType `env:"LOGGER_FORMAT"        envDefault:"json"`
 }
 
 func (c Config) SlogLevel() (slog.Level, error) {
 	switch c.Level {
-	case "debug":
+	case LevelDebug:
 		return slog.LevelDebug, nil
-	case "info":
+	case LevelInfo:
 		return slog.LevelInfo, nil
-	case "warn":
+	case LevelWarn:
 		return slog.LevelWarn, nil
-	case "error":
+	case LevelError:
 		return slog.LevelError, nil
 	default:
 		return 0, ErrInvalidLogLevel
