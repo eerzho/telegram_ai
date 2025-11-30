@@ -20,10 +20,14 @@ import (
 	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
 	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/logger"
-	otelexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_exporter"
+	oteltraceexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_trace_exporter"
+	otelmetricexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_metric_exporter"
+	otelmetricruntime "github.com/eerzho/telegram-ai/pkg/otel/otel_metric_runtime"
 	otelresource "github.com/eerzho/telegram-ai/pkg/otel/otel_resource"
 	oteltracer "github.com/eerzho/telegram-ai/pkg/otel/otel_tracer"
+	otelmeter "github.com/eerzho/telegram-ai/pkg/otel/otel_meter"
 	"github.com/go-playground/validator/v10"
+	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/semaphore"
@@ -138,25 +142,56 @@ func definitions() []simpledi.Definition {
 			},
 		},
 		{
-			ID:   "otelExporter",
+			ID:   "otelTraceExporter",
 			Deps: []string{"config"},
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
-				return otelexporter.MustNew(context.Background(), cfg.OTELExporter)
+				return oteltraceexporter.MustNew(context.Background(), cfg.OTELTraceExporter)
 			},
 		},
 		{
 			ID:   "otelTracer",
-			Deps: []string{"config", "otelResource", "otelExporter"},
+			Deps: []string{"config", "otelResource", "otelTraceExporter"},
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
 				resource := simpledi.Get[*resource.Resource]("otelResource")
-				exporter := simpledi.Get[trace.SpanExporter]("otelExporter")
-				return oteltracer.MustNew(context.Background(), cfg.OTELTracer, resource, exporter)
+				traceExporter := simpledi.Get[trace.SpanExporter]("otelTraceExporter")
+				return oteltracer.MustNew(context.Background(), cfg.OTELTracer, resource, traceExporter)
 			},
 			Close: func() error {
 				tracer := simpledi.Get[*trace.TracerProvider]("otelTracer")
 				return tracer.Shutdown(context.Background())
+			},
+		},
+		{
+			ID:   "otelMetricExporter",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return otelmetricexporter.MustNew(context.Background(), cfg.OTELMetricExporter)
+			},
+		},
+		{
+			ID:   "otelMeter",
+			Deps: []string{"config", "otelResource", "otelMetricExporter"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				resource := simpledi.Get[*resource.Resource]("otelResource")
+				metricExporter := simpledi.Get[metric.Exporter]("otelMetricExporter")
+				return otelmeter.MustNew(context.Background(), cfg.OTELMeter, resource, metricExporter)
+			},
+			Close: func() error {
+				meter := simpledi.Get[*metric.MeterProvider]("otelMeter")
+				return meter.Shutdown(context.Background())
+			},
+		},
+		{
+			ID:   "otelMetricRuntime",
+			Deps: []string{"otelMeter"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				otelmetricruntime.MustNew(cfg.OTELMetricRuntime)
+				return nil
 			},
 		},
 		{
