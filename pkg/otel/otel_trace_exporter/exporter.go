@@ -1,4 +1,4 @@
-package otelexporter
+package oteltraceexporter
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	ErrInvalidExporter = errors.New("invalid exporter type")
+	ErrInvalidExporter = errors.New("invalid trace exporter type")
 )
 
 func MustNew(ctx context.Context, cfg Config) trace.SpanExporter {
@@ -24,29 +24,29 @@ func MustNew(ctx context.Context, cfg Config) trace.SpanExporter {
 }
 
 func New(ctx context.Context, cfg Config) (trace.SpanExporter, error) {
-	var exporter trace.SpanExporter
+	var traceExporter trace.SpanExporter
 	var err error
 
 	switch cfg.Exporter {
 	case ExporterOTLPGRPC:
-		exporter, err = otlptracegrpc.New(ctx)
+		traceExporter, err = otlptracegrpc.New(ctx)
 	case ExporterOTLPHTTP:
-		exporter, err = otlptracehttp.New(ctx)
+		traceExporter, err = otlptracehttp.New(ctx)
 	case ExporterConsole:
-		exporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
+		traceExporter, err = stdouttrace.New(stdouttrace.WithPrettyPrint())
 	case ExporterNone:
-		exporter = noopExporter{}
+		traceExporter = noopTraceExporter{}
 	default:
 		err = ErrInvalidExporter
 	}
 
 	if err != nil {
-		return nil, fmt.Errorf("exporter: %w", err)
+		return nil, fmt.Errorf("trace exporter: %w", err)
 	}
-	return exporter, nil
+	return traceExporter, nil
 }
 
-type noopExporter struct{}
+type noopTraceExporter struct{}
 
-func (noopExporter) ExportSpans(context.Context, []trace.ReadOnlySpan) error { return nil }
-func (noopExporter) Shutdown(context.Context) error                          { return nil }
+func (noopTraceExporter) ExportSpans(context.Context, []trace.ReadOnlySpan) error { return nil }
+func (noopTraceExporter) Shutdown(context.Context) error                          { return nil }

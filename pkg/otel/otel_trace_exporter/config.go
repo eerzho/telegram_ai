@@ -1,4 +1,4 @@
-package otelexporter
+package oteltraceexporter
 
 type ExporterType string
 
