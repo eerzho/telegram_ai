@@ -73,3 +73,16 @@ OTEL_METRIC_CARDINALITY_LIMIT=2000
 
 For all other meter configuration, see the official documentation:
 📖 [OpenTelemetry Periodic Metric Reader Configuration](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#periodic-metric-reader)
+
+---
+
+## Metric Runtime Configuration
+
+**Custom configuration** (`otel_metric_runtime/config.go`):
+
+```
+OTEL_METRIC_RUNTIME_MIN_READ_MEMSTATS_INTERVAL=15s
+```
+
+For all other runtime metrics configuration, see the official documentation:
+📖 [OpenTelemetry Runtime Instrumentation](https://pkg.go.dev/go.opentelemetry.io/contrib/instrumentation/runtime)
