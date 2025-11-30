@@ -14,6 +14,7 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
 	"github.com/eerzho/telegram-ai/pkg/logging"
+	oteltracing "github.com/eerzho/telegram-ai/pkg/otel/otel_tracing"
 	"github.com/eerzho/telegram-ai/pkg/recovery"
 	swagger "github.com/swaggo/http-swagger"
 )
@@ -66,6 +67,7 @@ func Handler() http.Handler {
 	)
 
 	var handler http.Handler = mux
+	handler = oteltracing.Middleware()(handler)
 	handler = bodysize.Middleware(cfg.BodySize)(handler)
 	handler = cors.Middleware(cfg.CORS)(handler)
 	handler = logging.Middleware(logger)(handler)

@@ -20,7 +20,12 @@ import (
 	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
 	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/logger"
+	otelexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_exporter"
+	otelresource "github.com/eerzho/telegram-ai/pkg/otel/otel_resource"
+	oteltracer "github.com/eerzho/telegram-ai/pkg/otel/otel_tracer"
 	"github.com/go-playground/validator/v10"
+	"go.opentelemetry.io/otel/sdk/resource"
+	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -117,6 +122,44 @@ func definitions() []simpledi.Definition {
 			},
 		},
 		{
+			ID:   "generatorSem",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return semaphore.NewWeighted(cfg.App.GeneratorSemSize)
+			},
+		},
+		{
+			ID:   "otelResource",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return otelresource.MustNew(context.Background(), cfg.OTELResource)
+			},
+		},
+		{
+			ID:   "otelExporter",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return otelexporter.MustNew(context.Background(), cfg.OTELExporter)
+			},
+		},
+		{
+			ID:   "otelTracer",
+			Deps: []string{"config", "otelResource", "otelExporter"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				resource := simpledi.Get[*resource.Resource]("otelResource")
+				exporter := simpledi.Get[trace.SpanExporter]("otelExporter")
+				return oteltracer.MustNew(context.Background(), cfg.OTELTracer, resource, exporter)
+			},
+			Close: func() error {
+				tracer := simpledi.Get[*trace.TracerProvider]("otelTracer")
+				return tracer.Shutdown(context.Background())
+			},
+		},
+		{
 			ID:   "healthCheckUsecase",
 			Deps: []string{"config"},
 			New: func() any {
@@ -146,14 +189,6 @@ func definitions() []simpledi.Definition {
 					validate,
 					client,
 				)
-			},
-		},
-		{
-			ID:   "generatorSem",
-			Deps: []string{"config"},
-			New: func() any {
-				cfg := simpledi.Get[config.Config]("config")
-				return semaphore.NewWeighted(cfg.App.GeneratorSemSize)
 			},
 		},
 		{
