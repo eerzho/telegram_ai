@@ -18,8 +18,8 @@ func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
 			requestID := r.Header.Get("X-Request-Id")
 			if requestID == "" {
 				requestID = uuid.NewString()
+				r.Header.Set("X-Request-Id", requestID)
 			}
-
 			w.Header().Set("X-Request-Id", requestID)
 			rw := &responseWriter{ResponseWriter: w}
 
@@ -30,12 +30,17 @@ func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
 
 			lgr.InfoContext(r.Context(), "http request",
 				slog.String("method", r.Method),
-				slog.String("url_path", r.URL.Path),
-				slog.String("query", r.URL.RawQuery),
-				slog.String("user_agent", r.UserAgent()),
-				slog.Int("request_size", int(r.ContentLength)),
-				slog.Int("response_size", rw.size),
-				slog.Int("status_code", rw.statusCode),
+				slog.String("host", r.Host),
+				slog.String("remote_addr", r.RemoteAddr),
+				slog.String("url.scheme", r.URL.Scheme),
+				slog.String("url.path", r.URL.Path),
+				slog.String("url.query", r.URL.RawQuery),
+				slog.String("request.header.user_agent", r.UserAgent()),
+				slog.String("request.header.request_id", requestID),
+				slog.String("request.header.content_type", r.Header.Get("Content-Type")),
+				slog.Int64("request.size", r.ContentLength),
+				slog.Int("response.size", rw.size),
+				slog.Int("response.status_code", rw.statusCode),
 				slog.Duration("duration", time.Since(start)),
 			)
 		})
@@ -44,7 +49,6 @@ func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
 
 type responseWriter struct {
 	http.ResponseWriter
-
 	size       int
 	statusCode int
 }
