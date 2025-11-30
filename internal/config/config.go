@@ -11,6 +11,7 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/logger"
 	otelmeter "github.com/eerzho/telegram-ai/pkg/otel/otel_meter"
 	otelmetricexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_metric_exporter"
+	otelmetricruntime "github.com/eerzho/telegram-ai/pkg/otel/otel_metric_runtime"
 	otelresource "github.com/eerzho/telegram-ai/pkg/otel/otel_resource"
 	oteltraceexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_trace_exporter"
 	oteltracer "github.com/eerzho/telegram-ai/pkg/otel/otel_tracer"
@@ -35,6 +36,7 @@ type Config struct {
 	OTELTracer         oteltracer.Config
 	OTELMetricExporter otelmetricexporter.Config
 	OTELMeter          otelmeter.Config
+	OTELMetricRuntime  otelmetricruntime.Config
 }
 
 func MustNew() Config {
