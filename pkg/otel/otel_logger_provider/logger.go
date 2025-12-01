@@ -1,4 +1,4 @@
-package otellogger
+package otelloggerprovider
 
 import (
 	"context"

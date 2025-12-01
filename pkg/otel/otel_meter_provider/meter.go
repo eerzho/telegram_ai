@@ -1,4 +1,4 @@
-package otelmeter
+package otelmeterprovider
 
 import (
 	"context"
