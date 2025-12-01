@@ -9,12 +9,7 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/logger"
-	otelmeter "github.com/eerzho/telegram-ai/pkg/otel/otel_meter"
-	otelmetricexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_metric_exporter"
-	otelmetricruntime "github.com/eerzho/telegram-ai/pkg/otel/otel_metric_runtime"
-	otelresource "github.com/eerzho/telegram-ai/pkg/otel/otel_resource"
-	oteltraceexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_trace_exporter"
-	oteltracer "github.com/eerzho/telegram-ai/pkg/otel/otel_tracer"
+	"github.com/eerzho/telegram-ai/pkg/otel"
 	"github.com/joho/godotenv"
 )
 
@@ -25,18 +20,13 @@ type App struct {
 }
 
 type Config struct {
-	App                App
-	Logger             logger.Config
-	HTTPServer         httpserver.Config
-	CORS               cors.Config
-	Genkit             genkit.Config
-	BodySize           bodysize.Config
-	OTELResource       otelresource.Config
-	OTELTraceExporter  oteltraceexporter.Config
-	OTELTracer         oteltracer.Config
-	OTELMetricExporter otelmetricexporter.Config
-	OTELMeter          otelmeter.Config
-	OTELMetricRuntime  otelmetricruntime.Config
+	App        App
+	Logger     logger.Config
+	HTTPServer httpserver.Config
+	CORS       cors.Config
+	Genkit     genkit.Config
+	BodySize   bodysize.Config
+	OTEL       otel.Config
 }
 
 func MustNew() Config {
