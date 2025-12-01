@@ -27,6 +27,7 @@ import (
 	otelresource "github.com/eerzho/telegram-ai/pkg/otel/otel_resource"
 	oteltraceexporter "github.com/eerzho/telegram-ai/pkg/otel/otel_trace_exporter"
 	oteltracerprovider "github.com/eerzho/telegram-ai/pkg/otel/otel_tracer_provider"
+	otelruntime "github.com/eerzho/telegram-ai/pkg/otel_help/otel_runtime"
 	"github.com/go-playground/validator/v10"
 	"go.opentelemetry.io/otel/sdk/log"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -60,6 +61,7 @@ func run(ctx context.Context) error {
 	cfg := simpledi.Get[config.Config]("config")
 	lgr := simpledi.Get[*slog.Logger]("logger")
 
+	otelruntime.MustNew(cfg.OTELRuntime)
 	httpServer := httpserver.New(
 		http.Handler(),
 		cfg.HTTPServer,
