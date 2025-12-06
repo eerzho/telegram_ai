@@ -1,13 +1,9 @@
 package logging
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 	"time"
-
-	"github.com/eerzho/telegram-ai/pkg/logger"
-	"github.com/google/uuid"
 )
 
 func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
@@ -15,16 +11,7 @@ func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 
-			requestID := r.Header.Get("X-Request-Id")
-			if requestID == "" {
-				requestID = uuid.NewString()
-				r.Header.Set("X-Request-Id", requestID)
-			}
-			w.Header().Set("X-Request-Id", requestID)
 			rw := &responseWriter{ResponseWriter: w}
-
-			ctx := context.WithValue(r.Context(), logger.RequestIDKey, requestID)
-			r = r.WithContext(ctx)
 
 			next.ServeHTTP(rw, r)
 
@@ -32,15 +19,14 @@ func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
 				slog.String("method", r.Method),
 				slog.String("host", r.Host),
 				slog.String("remote_addr", r.RemoteAddr),
-				slog.String("url.scheme", r.URL.Scheme),
-				slog.String("url.path", r.URL.Path),
-				slog.String("url.query", r.URL.RawQuery),
-				slog.String("request.header.user_agent", r.UserAgent()),
-				slog.String("request.header.request_id", requestID),
-				slog.String("request.header.content_type", r.Header.Get("Content-Type")),
-				slog.Int64("request.size", r.ContentLength),
-				slog.Int("response.size", rw.size),
-				slog.Int("response.status_code", rw.statusCode),
+				slog.String("scheme", r.URL.Scheme),
+				slog.String("path", r.URL.Path),
+				slog.String("query", r.URL.RawQuery),
+				slog.String("user_agent", r.UserAgent()),
+				slog.String("content_type", r.Header.Get("Content-Type")),
+				slog.Int64("request_size", r.ContentLength),
+				slog.Int("response_size", rw.size),
+				slog.Int("status_code", rw.statusCode),
 				slog.Duration("duration", time.Since(start)),
 			)
 		})

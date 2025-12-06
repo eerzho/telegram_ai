@@ -1,8 +1,6 @@
 package logger
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -10,65 +8,33 @@ import (
 	"github.com/lmittmann/tint"
 )
 
-var (
-	ErrInvalidLogLevel = errors.New("invalid log level")
-	ErrInvalidFormat   = errors.New("invalid format")
-)
+func New(cfg Config) *slog.Logger {
+	slogLevel := cfg.SlogLevel()
+	handler := createHandler(cfg.Format, slogLevel, os.Stdout)
 
-func MustNew(cfg Config) *slog.Logger {
-	l, err := New(cfg)
-	if err != nil {
-		panic(err)
-	}
-	return l
-}
-
-func New(cfg Config) (*slog.Logger, error) {
-	slogLevel, err := cfg.SlogLevel()
-	if err != nil {
-		return nil, fmt.Errorf("logger: %w", err)
-	}
-	handler, err := createHandler(cfg.Format, slogLevel, os.Stdout)
-	if err != nil {
-		return nil, fmt.Errorf("logger: %w", err)
-	}
 	logger := slog.New(handler)
-	logger = logger.With(
-		slog.String("app_name", cfg.AppName),
-		slog.String("app_version", cfg.AppVersion),
-	)
-	return logger, nil
+
+	attrs := make([]any, 0, len(cfg.Attributes))
+	for key, value := range cfg.Attributes {
+		attrs = append(attrs, slog.String(key, value))
+	}
+	logger = logger.With(attrs...)
+
+	return logger
 }
 
-func createHandler(format FormatType, level slog.Level, w io.Writer) (slog.Handler, error) {
+func createHandler(format FormatType, level slog.Level, w io.Writer) slog.Handler {
 	var handler slog.Handler
 	switch format {
-	case FormatJson:
-		handler = slog.NewJSONHandler(w, &slog.HandlerOptions{
-			Level: level,
-		})
 	case FormatText:
 		handler = tint.NewHandler(w, &tint.Options{
 			AddSource: true,
 			Level:     level,
 		})
 	default:
-		return nil, ErrInvalidFormat
+		handler = slog.NewJSONHandler(w, &slog.HandlerOptions{
+			Level: level,
+		})
 	}
-	return NewContextHandler(handler), nil
-}
-
-func stringToSlogLevel(level string) (slog.Level, error) {
-	switch level {
-	case "debug":
-		return slog.LevelDebug, nil
-	case "info":
-		return slog.LevelInfo, nil
-	case "warn":
-		return slog.LevelWarn, nil
-	case "error":
-		return slog.LevelError, nil
-	default:
-		return 0, ErrInvalidLogLevel
-	}
+	return handler
 }
