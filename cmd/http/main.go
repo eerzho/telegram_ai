@@ -18,9 +18,9 @@ import (
 	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
 	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
 	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
+	autootel "github.com/eerzho/telegram-ai/pkg/auto_otel"
 	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/logger"
-	otelauto "github.com/eerzho/telegram-ai/pkg/otel_auto"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
 )
@@ -41,7 +41,7 @@ func run(ctx context.Context) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
-	otel, err := otelauto.Setup(ctx)
+	otel, err := autootel.Setup(ctx)
 	if err != nil {
 		return fmt.Errorf("otel: %w", err)
 	}
@@ -56,7 +56,7 @@ func run(ctx context.Context) error {
 	lgr := simpledi.Get[*slog.Logger]("logger")
 
 	httpServer := httpserver.New(
-		otelauto.NewHandler(http.Handler()),
+		autootel.NewHandler(http.Handler()),
 		cfg.HTTPServer,
 	)
 

@@ -1,4 +1,4 @@
-package otelauto
+package autootel
 
 import (
 	"fmt"
