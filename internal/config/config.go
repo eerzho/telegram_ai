@@ -9,8 +9,6 @@ import (
 	"github.com/eerzho/telegram-ai/pkg/cors"
 	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/logger"
-	"github.com/eerzho/telegram-ai/pkg/otel"
-	otelruntime "github.com/eerzho/telegram-ai/pkg/otel_help/otel_runtime"
 	"github.com/joho/godotenv"
 )
 
@@ -21,14 +19,12 @@ type App struct {
 }
 
 type Config struct {
-	App         App
-	Logger      logger.Config
-	HTTPServer  httpserver.Config
-	CORS        cors.Config
-	Genkit      genkit.Config
-	BodySize    bodysize.Config
-	OTEL        otel.Config
-	OTELRuntime otelruntime.Config
+	App        App
+	Logger     logger.Config
+	HTTPServer httpserver.Config
+	CORS       cors.Config
+	Genkit     genkit.Config
+	BodySize   bodysize.Config
 }
 
 func MustNew() Config {
