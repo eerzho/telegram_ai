@@ -15,7 +15,7 @@ type FormatType string
 
 const (
 	FormatText = "text"
-	FormatJson = "json"
+	FormatJSON = "json"
 )
 
 type Config struct {
@@ -32,6 +32,8 @@ func (c Config) SlogLevel() slog.Level {
 		return slog.LevelInfo
 	case LevelWarn:
 		return slog.LevelWarn
+	case LevelError:
+		return slog.LevelError
 	default:
 		return slog.LevelError
 	}

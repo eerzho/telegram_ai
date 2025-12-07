@@ -44,11 +44,11 @@ func Setup(ctx context.Context) (*OTel, error) {
 	meterProvider := newMeterProvider(res, metricExporter)
 	otel.SetMeterProvider(meterProvider)
 
-	if err := runtimeStart(); err != nil {
+	if err = runtimeStart(); err != nil {
 		return nil, err
 	}
 
-	if err := hostStart(); err != nil {
+	if err = hostStart(); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +60,8 @@ func Setup(ctx context.Context) (*OTel, error) {
 }
 
 func (o *OTel) Shutdown(ctx context.Context) error {
-	errs := make([]error, 0, 3)
+	const count = 3
+	errs := make([]error, 0, count)
 	if err := o.tracerProvider.Shutdown(ctx); err != nil {
 		errs = append(errs, err)
 	}

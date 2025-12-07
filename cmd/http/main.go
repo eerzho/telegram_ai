@@ -46,7 +46,7 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("otel: %w", err)
 	}
 
-	for _, definition := range definitions(ctx) {
+	for _, definition := range definitions() {
 		simpledi.Set(definition)
 	}
 
@@ -63,13 +63,13 @@ func run(ctx context.Context) error {
 	serverErrs := make(chan error, 1)
 	go func() {
 		lgr.Info("starting http server", slog.String("addr", httpServer.Addr))
-		if err := httpServer.ListenAndServe(); err != nil {
+		if err = httpServer.ListenAndServe(); err != nil {
 			serverErrs <- err
 		}
 	}()
 
 	select {
-	case err := <-serverErrs:
+	case err = <-serverErrs:
 		return fmt.Errorf("server: %w", err)
 	case <-ctx.Done():
 		lgr.InfoContext(ctx, "shutdown signal received")
@@ -78,24 +78,24 @@ func run(ctx context.Context) error {
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
 	defer shutdownCancel()
 
-	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+	if err = httpServer.Shutdown(shutdownCtx); err != nil {
 		return fmt.Errorf("shutdown: %w", err)
 	}
 
-	if err := simpledi.Close(); err != nil {
+	if err = simpledi.Close(); err != nil {
 		lgr.WarnContext(shutdownCtx, "failed to close container", slog.Any("error", err))
 	}
 
 	lgr.InfoContext(shutdownCtx, "http server stopped")
 
-	if err := otel.Shutdown(shutdownCtx); err != nil {
+	if err = otel.Shutdown(shutdownCtx); err != nil {
 		lgr.WarnContext(shutdownCtx, "failed to shutdown otel", slog.Any("error", err))
 	}
 
 	return nil
 }
 
-func definitions(ctx context.Context) []simpledi.Definition {
+func definitions() []simpledi.Definition {
 	return []simpledi.Definition{
 		{
 			ID: "config",

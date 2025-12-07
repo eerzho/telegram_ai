@@ -54,56 +54,68 @@ func newResource(ctx context.Context) (*resource.Resource, error) {
 		return newResourceAll(ctx)
 	}
 	detectors := strings.Split(envDetectors, ",")
-	opts := make([]resource.Option, 0, len(detectors))
-	for _, detector := range detectors {
-		switch strings.TrimSpace(detector) {
-		case DetectorAll:
-			return newResourceAll(ctx)
-		case DetectorENV:
-			opts = append(opts, resource.WithFromEnv())
-		case DetectorHost:
-			opts = append(opts, resource.WithHost())
-		case DetectorHostID:
-			opts = append(opts, resource.WithHostID())
-		case DetectorTelemetrySDK:
-			opts = append(opts, resource.WithTelemetrySDK())
-		case DetectorSchemaURL:
-			opts = append(opts, resource.WithSchemaURL(os.Getenv(string(ENVResourceSchemaURL))))
-		case DetectorOS:
-			opts = append(opts, resource.WithOS())
-		case DetectorOSType:
-			opts = append(opts, resource.WithOSType())
-		case DetectorOSDescription:
-			opts = append(opts, resource.WithOSDescription())
-		case DetectorProcess:
-			opts = append(opts, resource.WithProcess())
-		case DetectorProcessPID:
-			opts = append(opts, resource.WithProcessPID())
-		case DetectorProcessExecutableName:
-			opts = append(opts, resource.WithProcessExecutableName())
-		case DetectorProcessExecutablePath:
-			opts = append(opts, resource.WithProcessExecutablePath())
-		case DetectorProcessCommandArgs:
-			opts = append(opts, resource.WithProcessCommandArgs())
-		case DetectorProcessOwner:
-			opts = append(opts, resource.WithProcessOwner())
-		case DetectorProcessRuntimeName:
-			opts = append(opts, resource.WithProcessRuntimeName())
-		case DetectorProcessRuntimeVersion:
-			opts = append(opts, resource.WithProcessRuntimeVersion())
-		case DetectorProcessRuntimeDescription:
-			opts = append(opts, resource.WithProcessRuntimeDescription())
-		case DetectorContainer:
-			opts = append(opts, resource.WithContainer())
-		case DetectorContainerID:
-			opts = append(opts, resource.WithContainerID())
-		}
-	}
+	opts := buildResourceOptions(detectors)
 	r, err := resource.New(ctx, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("resource: %w", err)
 	}
 	return r, nil
+}
+
+func buildResourceOptions(detectors []string) []resource.Option {
+	opts := make([]resource.Option, 0, len(detectors))
+	for _, detector := range detectors {
+		opt := getDetectorOption(strings.TrimSpace(detector))
+		if opt != nil {
+			opts = append(opts, opt)
+		}
+	}
+	return opts
+}
+
+func getDetectorOption(detector string) resource.Option {
+	switch detector {
+	case DetectorENV:
+		return resource.WithFromEnv()
+	case DetectorHost:
+		return resource.WithHost()
+	case DetectorHostID:
+		return resource.WithHostID()
+	case DetectorTelemetrySDK:
+		return resource.WithTelemetrySDK()
+	case DetectorSchemaURL:
+		return resource.WithSchemaURL(os.Getenv(ENVResourceSchemaURL))
+	case DetectorOS:
+		return resource.WithOS()
+	case DetectorOSType:
+		return resource.WithOSType()
+	case DetectorOSDescription:
+		return resource.WithOSDescription()
+	case DetectorProcess:
+		return resource.WithProcess()
+	case DetectorProcessPID:
+		return resource.WithProcessPID()
+	case DetectorProcessExecutableName:
+		return resource.WithProcessExecutableName()
+	case DetectorProcessExecutablePath:
+		return resource.WithProcessExecutablePath()
+	case DetectorProcessCommandArgs:
+		return resource.WithProcessCommandArgs()
+	case DetectorProcessOwner:
+		return resource.WithProcessOwner()
+	case DetectorProcessRuntimeName:
+		return resource.WithProcessRuntimeName()
+	case DetectorProcessRuntimeVersion:
+		return resource.WithProcessRuntimeVersion()
+	case DetectorProcessRuntimeDescription:
+		return resource.WithProcessRuntimeDescription()
+	case DetectorContainer:
+		return resource.WithContainer()
+	case DetectorContainerID:
+		return resource.WithContainerID()
+	default:
+		return nil
+	}
 }
 
 func newResourceAll(ctx context.Context) (*resource.Resource, error) {
@@ -112,7 +124,7 @@ func newResourceAll(ctx context.Context) (*resource.Resource, error) {
 		resource.WithHost(),
 		resource.WithHostID(),
 		resource.WithTelemetrySDK(),
-		resource.WithSchemaURL(os.Getenv(string(ENVResourceSchemaURL))),
+		resource.WithSchemaURL(os.Getenv(ENVResourceSchemaURL)),
 		resource.WithOS(),
 		resource.WithOSType(),
 		resource.WithOSDescription(),
