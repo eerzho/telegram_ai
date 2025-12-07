@@ -19,9 +19,9 @@ const (
 )
 
 type Config struct {
-	Level      LevelType         `env:"LOGGER_LEVEL"         envDefault:"info"`
-	Format     FormatType        `env:"LOGGER_FORMAT"        envDefault:"json"`
-	Attributes map[string]string `env:"LOGGER_ATTRIBUTES" envSeparator:","`
+	Level      LevelType         `env:"LOGGER_LEVEL"      envDefault:"info"`
+	Format     FormatType        `env:"LOGGER_FORMAT"     envDefault:"json"`
+	Attributes map[string]string `env:"LOGGER_ATTRIBUTES"                   envSeparator:","`
 }
 
 func (c Config) SlogLevel() slog.Level {

@@ -1,7 +1,7 @@
 package cors
 
 type Config struct {
-	AllowedOrigins   []string `env:"CORS_ALLOWED_ORIGINS"   envDefault:"*" envSeparator:","`
+	AllowedOrigins   []string `env:"CORS_ALLOWED_ORIGINS"   envDefault:"*"                                       envSeparator:","`
 	AllowedMethods   string   `env:"CORS_ALLOWED_METHODS"   envDefault:"GET,POST,PUT,DELETE,OPTIONS,PATCH"`
 	AllowedHeaders   string   `env:"CORS_ALLOWED_HEADERS"   envDefault:"Content-Type,Authorization,X-Request-Id"`
 	AllowCredentials bool     `env:"CORS_ALLOW_CREDENTIALS" envDefault:"false"`
