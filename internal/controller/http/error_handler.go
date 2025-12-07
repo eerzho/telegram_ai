@@ -15,7 +15,7 @@ import (
 func errorHandler(logger *slog.Logger) httphandler.ErrorHandler {
 	return func(w http.ResponseWriter, r *http.Request, err error) {
 		logLevel := errorLogLevel(err)
-		logger.Log(r.Context(), logLevel, "handler error", slog.Any("error", err))
+		logger.Log(r.Context(), logLevel, "request failed", slog.Any("error", err))
 
 		jsonError := errorToJSON(err)
 		json.EncodeError(w, jsonError)

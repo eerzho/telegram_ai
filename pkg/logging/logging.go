@@ -15,7 +15,7 @@ func Middleware(lgr *slog.Logger) func(http.Handler) http.Handler {
 
 			next.ServeHTTP(rw, r)
 
-			lgr.InfoContext(r.Context(), "http request",
+			lgr.InfoContext(r.Context(), "request handled",
 				slog.String("method", r.Method),
 				slog.String("host", r.Host),
 				slog.String("remote_addr", r.RemoteAddr),
