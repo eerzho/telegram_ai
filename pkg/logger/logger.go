@@ -6,11 +6,17 @@ import (
 	"os"
 
 	"github.com/lmittmann/tint"
+	slogmulti "github.com/samber/slog-multi"
 )
 
-func New(cfg Config) *slog.Logger {
+func New(cfg Config, handlers ...slog.Handler) *slog.Logger {
 	slogLevel := cfg.SlogLevel()
 	handler := createHandler(cfg.Format, slogLevel, os.Stdout)
+
+	if len(handlers) > 0 {
+		handlers = append(handlers, handler)
+		handler = slogmulti.Fanout(handlers...)
+	}
 
 	logger := slog.New(handler)
 

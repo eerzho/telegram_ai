@@ -108,7 +108,7 @@ func definitions(ctx context.Context) []simpledi.Definition {
 			Deps: []string{"config"},
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
-				return logger.New(cfg.Logger)
+				return logger.New(cfg.Logger, autootel.NewSlogHandler())
 			},
 		},
 		{
