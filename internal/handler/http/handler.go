@@ -10,8 +10,8 @@ import (
 	"github.com/eerzho/goiler/pkg/recovery"
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/internal/config"
-	healthcheck "github.com/eerzho/telegram-ai/internal/health/health_check"
 	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
+	healthcheck "github.com/eerzho/telegram-ai/internal/monitoring/health_check"
 	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
 	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
 	swagger "github.com/swaggo/http-swagger"
@@ -19,22 +19,23 @@ import (
 
 // Handler godoc
 //
-// @title TelegramAI API
+// @version 1.0
+// @title TelegramAI
+// @description Telegram with AI features
 //
 // @schemes http
 // @host localhost
 // @basePath /
 //
 // @externalDocs.description GitHub
-// @externalDocs.url https://github.com/eerzho/telegram-ai
+// @externalDocs.url https://github.com/eerzho/telegram_ai
 func Handler() http.Handler {
 	mux := http.NewServeMux()
+	mux.Handle("/swagger/", swagger.WrapHandler)
+
 	cfg := simpledi.Get[config.Config]("config")
 	logger := simpledi.Get[*slog.Logger]("logger")
-
 	errorHandler := errorHandler(logger)
-
-	mux.Handle("/swagger/", swagger.WrapHandler)
 
 	mux.Handle(
 		"GET /_hc",
@@ -42,6 +43,7 @@ func Handler() http.Handler {
 			simpledi.Get[*healthcheck.Usecase]("healthCheckUsecase"),
 		), errorHandler),
 	)
+
 	mux.Handle(
 		"POST /v1/responses/generate",
 		httpserver.Wrap(responsegenerate.HTTPv1(
@@ -49,6 +51,7 @@ func Handler() http.Handler {
 			simpledi.Get[*responsegenerate.Usecase]("responseGenerateUsecase"),
 		), errorHandler),
 	)
+
 	mux.Handle(
 		"POST /v1/summaries/generate",
 		httpserver.Wrap(summarygenerate.HTTPv1(
@@ -56,6 +59,7 @@ func Handler() http.Handler {
 			simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase"),
 		), errorHandler),
 	)
+
 	mux.Handle(
 		"POST /v1/improvements/generate",
 		httpserver.Wrap(improvementgenerate.HTTPv1(

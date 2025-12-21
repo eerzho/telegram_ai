@@ -23,53 +23,46 @@ func errorHandler(logger *slog.Logger) httpserver.ErrorHandler {
 }
 
 func errorLogLevel(err error) slog.Level {
-	switch {
-	case errors.Is(err, httpjson.ErrInvalidContentType):
+	if _, ok := errorhelp.AsType[validator.ValidationErrors](err); ok {
 		return slog.LevelInfo
-	case errorhelp.Any(
+	} else if errorhelp.Any(
 		err,
-		domain.ErrTooManyGenerateRequests,
+		httpjson.ErrInvalidContentType,
+	) {
+		return slog.LevelInfo
+	} else if errorhelp.Any(
+		err,
 		domain.ErrGenerationTimeout,
-	):
+		domain.ErrTooManyGenerateRequests,
+	) {
 		return slog.LevelWarn
 	}
-
-	var validationErrors validator.ValidationErrors
-	if errors.As(err, &validationErrors) {
-		return slog.LevelInfo
-	}
-
 	return slog.LevelError
 }
 
 func errorToJSON(err error) httpjson.Error {
-	switch {
-	case errors.Is(err, httpjson.ErrInvalidContentType):
+	if errors.Is(err, httpjson.ErrInvalidContentType) {
 		return httpjson.Error{
 			Status:  http.StatusBadRequest,
 			Message: http.StatusText(http.StatusBadRequest),
 		}
-	case errors.Is(err, domain.ErrTooManyGenerateRequests):
-		return httpjson.Error{
-			Status:  http.StatusTooManyRequests,
-			Message: "Please try again later.",
-		}
-	case errors.Is(err, domain.ErrGenerationTimeout):
+	} else if errors.Is(err, domain.ErrGenerationTimeout) {
 		return httpjson.Error{
 			Status:  http.StatusRequestTimeout,
 			Message: "Please try again later.",
 		}
-	}
-
-	var validationErrors validator.ValidationErrors
-	if errors.As(err, &validationErrors) {
+	} else if errors.Is(err, domain.ErrTooManyGenerateRequests) {
+		return httpjson.Error{
+			Status:  http.StatusTooManyRequests,
+			Message: "Please try again later.",
+		}
+	} else if validationErrs, ok := errorhelp.AsType[validator.ValidationErrors](err); ok {
 		return httpjson.Error{
 			Status:  http.StatusBadRequest,
 			Message: http.StatusText(http.StatusBadRequest),
-			Details: validationErrorsToDetails(validationErrors),
+			Details: validationErrorsToDetails(validationErrs),
 		}
 	}
-
 	return httpjson.Error{
 		Status:  http.StatusInternalServerError,
 		Message: http.StatusText(http.StatusInternalServerError),
@@ -91,16 +84,16 @@ func validationErrorsToDetails(validationErrors validator.ValidationErrors) []ht
 func fieldErrorMessage(fieldError validator.FieldError) string {
 	switch fieldError.Tag() {
 	case "required":
-		return "This field is required"
+		return "this field is required"
 	case "min":
-		return "Minimum " + fieldError.Param() + " characters required"
+		return "minimum " + fieldError.Param() + " characters required"
 	case "max":
-		return "Maximum " + fieldError.Param() + " characters allowed"
+		return "maximum " + fieldError.Param() + " characters allowed"
 	case "gt":
-		return "Must be greater than " + fieldError.Param()
+		return "must be greater than " + fieldError.Param()
 	case "dive":
-		return "Invalid item in array"
+		return "invalid item in array"
 	default:
-		return "Validation failed"
+		return "validation failed"
 	}
 }
