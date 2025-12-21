@@ -1,22 +1,26 @@
 package healthcheck
 
-import "context"
+import (
+	"context"
+
+	"github.com/eerzho/telegram-ai/internal/config"
+)
 
 type Usecase struct {
-	version string
+	cfg config.App
 }
 
 func NewUsecase(
-	version string,
+	cfg config.App,
 ) *Usecase {
 	return &Usecase{
-		version: version,
+		cfg: cfg,
 	}
 }
 
 func (h *Usecase) Execute(_ context.Context, _ Input) (Output, error) {
 	return Output{
 		Status:  "ok",
-		Version: h.version,
+		Version: h.cfg.Version,
 	}, nil
 }

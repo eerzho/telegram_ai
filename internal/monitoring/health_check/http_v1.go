@@ -11,12 +11,12 @@ import (
 // HTTPv1 godoc
 //
 // @summary health check
-// @tags health
+// @tags monitoring
 //
 // @produce json
 // @success 200 {object} Output
-// @failure 400 {object} json.Error
-// @failure 500 {object} json.Error
+// @failure 400 {object} httpjson.Error
+// @failure 500 {object} httpjson.Error
 //
 // @router /_hc [get].
 func HTTPv1(usecase *Usecase) httpserver.HandlerFunc {
