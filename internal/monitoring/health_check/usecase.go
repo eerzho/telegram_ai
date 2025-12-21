@@ -3,7 +3,7 @@ package healthcheck
 import (
 	"context"
 
-	"github.com/eerzho/telegram-ai/internal/config"
+	"github.com/eerzho/telegram_ai/internal/config"
 )
 
 type Usecase struct {

@@ -1,81 +1,6 @@
 basePath: /
 definitions:
-  healthcheck.Output:
-    properties:
-      status:
-        type: string
-      version:
-        type: string
-    type: object
-  improvementgenerate.Input:
-    properties:
-      text:
-        minLength: 1
-        type: string
-    required:
-    - text
-    type: object
-  json.Error:
-    properties:
-      code:
-        type: string
-      details:
-        items:
-          $ref: '#/definitions/json.ErrorDetail'
-        type: array
-      message:
-        type: string
-    type: object
-  json.ErrorDetail:
-    properties:
-      code:
-        type: string
-      field:
-        type: string
-      message:
-        type: string
-    type: object
-  responsegenerate.Input:
-    properties:
-      messages:
-        items:
-          $ref: '#/definitions/responsegenerate.InputMessage'
-        maxItems: 1000
-        minItems: 1
-        type: array
-      owner:
-        $ref: '#/definitions/responsegenerate.InputUser'
-    required:
-    - messages
-    - owner
-    type: object
-  responsegenerate.InputMessage:
-    properties:
-      date:
-        type: integer
-      sender:
-        $ref: '#/definitions/responsegenerate.InputUser'
-      text:
-        minLength: 1
-        type: string
-    required:
-    - date
-    - sender
-    - text
-    type: object
-  responsegenerate.InputUser:
-    properties:
-      chat_id:
-        minLength: 1
-        type: string
-      name:
-        minLength: 1
-        type: string
-    required:
-    - chat_id
-    - name
-    type: object
-  sse.Event:
+  github_com_eerzho_telegram_ai_pkg_sse.Event:
     properties:
       data:
         type: string
@@ -87,34 +12,61 @@ definitions:
         description: milliseconds
         type: integer
     type: object
-  summarygenerate.Input:
+  httpjson.Error:
     properties:
-      language:
-        maxLength: 2
-        minLength: 2
+      code:
         type: string
+      details:
+        items:
+          $ref: '#/definitions/httpjson.ErrorDetail'
+        type: array
+      message:
+        type: string
+    type: object
+  httpjson.ErrorDetail:
+    properties:
+      code:
+        type: string
+      field:
+        type: string
+      message:
+        type: string
+    type: object
+  internal_improvement_improvement_generate.Input:
+    properties:
+      text:
+        minLength: 1
+        type: string
+    required:
+    - text
+    type: object
+  internal_monitoring_health_check.Output:
+    properties:
+      status:
+        type: string
+      version:
+        type: string
+    type: object
+  internal_response_response_generate.Input:
+    properties:
       messages:
         items:
-          $ref: '#/definitions/summarygenerate.InputMessage'
+          $ref: '#/definitions/internal_response_response_generate.InputMessage'
         maxItems: 1000
         minItems: 1
         type: array
       owner:
-        $ref: '#/definitions/summarygenerate.InputSender'
-      peer:
-        $ref: '#/definitions/summarygenerate.InputSender'
+        $ref: '#/definitions/internal_response_response_generate.InputUser'
     required:
-    - language
     - messages
     - owner
-    - peer
     type: object
-  summarygenerate.InputMessage:
+  internal_response_response_generate.InputMessage:
     properties:
       date:
         type: integer
       sender:
-        $ref: '#/definitions/summarygenerate.InputSender'
+        $ref: '#/definitions/internal_response_response_generate.InputUser'
       text:
         minLength: 1
         type: string
@@ -123,7 +75,55 @@ definitions:
     - sender
     - text
     type: object
-  summarygenerate.InputSender:
+  internal_response_response_generate.InputUser:
+    properties:
+      chat_id:
+        minLength: 1
+        type: string
+      name:
+        minLength: 1
+        type: string
+    required:
+    - chat_id
+    - name
+    type: object
+  internal_summary_summary_generate.Input:
+    properties:
+      language:
+        maxLength: 2
+        minLength: 2
+        type: string
+      messages:
+        items:
+          $ref: '#/definitions/internal_summary_summary_generate.InputMessage'
+        maxItems: 1000
+        minItems: 1
+        type: array
+      owner:
+        $ref: '#/definitions/internal_summary_summary_generate.InputSender'
+      peer:
+        $ref: '#/definitions/internal_summary_summary_generate.InputSender'
+    required:
+    - language
+    - messages
+    - owner
+    - peer
+    type: object
+  internal_summary_summary_generate.InputMessage:
+    properties:
+      date:
+        type: integer
+      sender:
+        $ref: '#/definitions/internal_summary_summary_generate.InputSender'
+      text:
+        minLength: 1
+        type: string
+    required:
+    - date
+    - sender
+    - text
+    type: object
+  internal_summary_summary_generate.InputSender:
     properties:
       chat_id:
         minLength: 1
@@ -137,11 +137,13 @@ definitions:
     type: object
 externalDocs:
   description: GitHub
-  url: https://github.com/eerzho/telegram-ai
+  url: https://github.com/eerzho/telegram_ai
 host: localhost
 info:
   contact: {}
-  title: TelegramAI API
+  description: Telegram with AI features
+  title: TelegramAI
+  version: "1.0"
 paths:
   /_hc:
     get:
@@ -151,18 +153,18 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/healthcheck.Output'
+            $ref: '#/definitions/internal_monitoring_health_check.Output'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
       summary: health check
       tags:
-      - health
+      - monitoring
   /v1/improvements/generate:
     post:
       consumes:
@@ -173,7 +175,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/improvementgenerate.Input'
+          $ref: '#/definitions/internal_improvement_improvement_generate.Input'
       produces:
       - application/json
       - text/event-stream
@@ -181,15 +183,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/sse.Event'
+            $ref: '#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
       summary: improvement generate
       tags:
       - improvement
@@ -203,7 +205,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/responsegenerate.Input'
+          $ref: '#/definitions/internal_response_response_generate.Input'
       produces:
       - application/json
       - text/event-stream
@@ -211,15 +213,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/sse.Event'
+            $ref: '#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
       summary: response generate
       tags:
       - response
@@ -233,7 +235,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/summarygenerate.Input'
+          $ref: '#/definitions/internal_summary_summary_generate.Input'
       produces:
       - application/json
       - text/event-stream
@@ -241,15 +243,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/sse.Event'
+            $ref: '#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/json.Error'
+            $ref: '#/definitions/httpjson.Error'
       summary: summary generate
       tags:
       - summary

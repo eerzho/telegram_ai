@@ -40,7 +40,7 @@ tasks:
   docs:swagger:
     desc: "Generate Swagger docs"
     cmds:
-      - swag init -g ./internal/controller/http/handler.go
+      - swag init -g ./internal/handler/http/handler.go --parseDependency
 
   migrations:create:
     desc: "Create new migration"

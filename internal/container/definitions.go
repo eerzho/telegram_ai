@@ -4,12 +4,12 @@ import (
 	autootel "github.com/eerzho/goiler/pkg/auto_otel"
 	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/simpledi"
-	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
-	"github.com/eerzho/telegram-ai/internal/config"
-	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
-	healthcheck "github.com/eerzho/telegram-ai/internal/monitoring/health_check"
-	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
-	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
+	"github.com/eerzho/telegram_ai/internal/adapter/genkit"
+	"github.com/eerzho/telegram_ai/internal/config"
+	improvementgenerate "github.com/eerzho/telegram_ai/internal/improvement/improvement_generate"
+	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
+	responsegenerate "github.com/eerzho/telegram_ai/internal/response/response_generate"
+	summarygenerate "github.com/eerzho/telegram_ai/internal/summary/summary_generate"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
 )
@@ -57,7 +57,7 @@ func Definitions() []simpledi.Definition {
 			Deps: []string{"config"},
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
-				return healthcheck.NewUsecase(cfg.App.Version)
+				return healthcheck.NewUsecase(cfg.App)
 			},
 		},
 		{

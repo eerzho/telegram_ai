@@ -1,4 +1,4 @@
-module github.com/eerzho/telegram-ai
+module github.com/eerzho/telegram_ai
 
 go 1.25
 

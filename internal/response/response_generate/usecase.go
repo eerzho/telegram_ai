@@ -7,7 +7,7 @@ import (
 	"time"
 
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
-	"github.com/eerzho/telegram-ai/internal/domain"
+	"github.com/eerzho/telegram_ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
 )

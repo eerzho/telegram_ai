@@ -13,9 +13,9 @@ import (
 	autootel "github.com/eerzho/goiler/pkg/auto_otel"
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
 	"github.com/eerzho/simpledi"
-	"github.com/eerzho/telegram-ai/internal/config"
-	"github.com/eerzho/telegram-ai/internal/container"
-	"github.com/eerzho/telegram-ai/internal/handler/http"
+	"github.com/eerzho/telegram_ai/internal/config"
+	"github.com/eerzho/telegram_ai/internal/container"
+	"github.com/eerzho/telegram_ai/internal/handler/http"
 )
 
 const (

@@ -9,11 +9,11 @@ import (
 	"github.com/eerzho/goiler/pkg/logging"
 	"github.com/eerzho/goiler/pkg/recovery"
 	"github.com/eerzho/simpledi"
-	"github.com/eerzho/telegram-ai/internal/config"
-	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
-	healthcheck "github.com/eerzho/telegram-ai/internal/monitoring/health_check"
-	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
-	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
+	"github.com/eerzho/telegram_ai/internal/config"
+	improvementgenerate "github.com/eerzho/telegram_ai/internal/improvement/improvement_generate"
+	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
+	responsegenerate "github.com/eerzho/telegram_ai/internal/response/response_generate"
+	summarygenerate "github.com/eerzho/telegram_ai/internal/summary/summary_generate"
 	swagger "github.com/swaggo/http-swagger"
 )
 

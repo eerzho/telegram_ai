@@ -4,8 +4,10 @@
     ],
     "swagger": "2.0",
     "info": {
-        "title": "TelegramAI API",
-        "contact": {}
+        "description": "Telegram with AI features",
+        "title": "TelegramAI",
+        "contact": {},
+        "version": "1.0"
     },
     "host": "localhost",
     "basePath": "/",
@@ -16,26 +18,26 @@
                     "application/json"
                 ],
                 "tags": [
-                    "health"
+                    "monitoring"
                 ],
                 "summary": "health check",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/healthcheck.Output"
+                            "$ref": "#/definitions/internal_monitoring_health_check.Output"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     }
                 }
@@ -61,7 +63,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/improvementgenerate.Input"
+                            "$ref": "#/definitions/internal_improvement_improvement_generate.Input"
                         }
                     }
                 ],
@@ -69,19 +71,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/sse.Event"
+                            "$ref": "#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     }
                 }
@@ -107,7 +109,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/responsegenerate.Input"
+                            "$ref": "#/definitions/internal_response_response_generate.Input"
                         }
                     }
                 ],
@@ -115,19 +117,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/sse.Event"
+                            "$ref": "#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     }
                 }
@@ -153,7 +155,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/summarygenerate.Input"
+                            "$ref": "#/definitions/internal_summary_summary_generate.Input"
                         }
                     }
                 ],
@@ -161,19 +163,19 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/sse.Event"
+                            "$ref": "#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/json.Error"
+                            "$ref": "#/definitions/httpjson.Error"
                         }
                     }
                 }
@@ -181,118 +183,7 @@
         }
     },
     "definitions": {
-        "healthcheck.Output": {
-            "type": "object",
-            "properties": {
-                "status": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "improvementgenerate.Input": {
-            "type": "object",
-            "required": [
-                "text"
-            ],
-            "properties": {
-                "text": {
-                    "type": "string",
-                    "minLength": 1
-                }
-            }
-        },
-        "json.Error": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "details": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/json.ErrorDetail"
-                    }
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "json.ErrorDetail": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "field": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "responsegenerate.Input": {
-            "type": "object",
-            "required": [
-                "messages",
-                "owner"
-            ],
-            "properties": {
-                "messages": {
-                    "type": "array",
-                    "maxItems": 1000,
-                    "minItems": 1,
-                    "items": {
-                        "$ref": "#/definitions/responsegenerate.InputMessage"
-                    }
-                },
-                "owner": {
-                    "$ref": "#/definitions/responsegenerate.InputUser"
-                }
-            }
-        },
-        "responsegenerate.InputMessage": {
-            "type": "object",
-            "required": [
-                "date",
-                "sender",
-                "text"
-            ],
-            "properties": {
-                "date": {
-                    "type": "integer"
-                },
-                "sender": {
-                    "$ref": "#/definitions/responsegenerate.InputUser"
-                },
-                "text": {
-                    "type": "string",
-                    "minLength": 1
-                }
-            }
-        },
-        "responsegenerate.InputUser": {
-            "type": "object",
-            "required": [
-                "chat_id",
-                "name"
-            ],
-            "properties": {
-                "chat_id": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "name": {
-                    "type": "string",
-                    "minLength": 1
-                }
-            }
-        },
-        "sse.Event": {
+        "github_com_eerzho_telegram_ai_pkg_sse.Event": {
             "type": "object",
             "properties": {
                 "data": {
@@ -310,7 +201,118 @@
                 }
             }
         },
-        "summarygenerate.Input": {
+        "httpjson.Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/httpjson.ErrorDetail"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "httpjson.ErrorDetail": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "field": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_improvement_improvement_generate.Input": {
+            "type": "object",
+            "required": [
+                "text"
+            ],
+            "properties": {
+                "text": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "internal_monitoring_health_check.Output": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_response_response_generate.Input": {
+            "type": "object",
+            "required": [
+                "messages",
+                "owner"
+            ],
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "maxItems": 1000,
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/internal_response_response_generate.InputMessage"
+                    }
+                },
+                "owner": {
+                    "$ref": "#/definitions/internal_response_response_generate.InputUser"
+                }
+            }
+        },
+        "internal_response_response_generate.InputMessage": {
+            "type": "object",
+            "required": [
+                "date",
+                "sender",
+                "text"
+            ],
+            "properties": {
+                "date": {
+                    "type": "integer"
+                },
+                "sender": {
+                    "$ref": "#/definitions/internal_response_response_generate.InputUser"
+                },
+                "text": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "internal_response_response_generate.InputUser": {
+            "type": "object",
+            "required": [
+                "chat_id",
+                "name"
+            ],
+            "properties": {
+                "chat_id": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "internal_summary_summary_generate.Input": {
             "type": "object",
             "required": [
                 "language",
@@ -329,18 +331,18 @@
                     "maxItems": 1000,
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/summarygenerate.InputMessage"
+                        "$ref": "#/definitions/internal_summary_summary_generate.InputMessage"
                     }
                 },
                 "owner": {
-                    "$ref": "#/definitions/summarygenerate.InputSender"
+                    "$ref": "#/definitions/internal_summary_summary_generate.InputSender"
                 },
                 "peer": {
-                    "$ref": "#/definitions/summarygenerate.InputSender"
+                    "$ref": "#/definitions/internal_summary_summary_generate.InputSender"
                 }
             }
         },
-        "summarygenerate.InputMessage": {
+        "internal_summary_summary_generate.InputMessage": {
             "type": "object",
             "required": [
                 "date",
@@ -352,7 +354,7 @@
                     "type": "integer"
                 },
                 "sender": {
-                    "$ref": "#/definitions/summarygenerate.InputSender"
+                    "$ref": "#/definitions/internal_summary_summary_generate.InputSender"
                 },
                 "text": {
                     "type": "string",
@@ -360,7 +362,7 @@
                 }
             }
         },
-        "summarygenerate.InputSender": {
+        "internal_summary_summary_generate.InputSender": {
             "type": "object",
             "required": [
                 "chat_id",
@@ -380,6 +382,6 @@
     },
     "externalDocs": {
         "description": "GitHub",
-        "url": "https://github.com/eerzho/telegram-ai"
+        "url": "https://github.com/eerzho/telegram_ai"
     }
 }

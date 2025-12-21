@@ -7,7 +7,7 @@ import (
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
 	httpjson "github.com/eerzho/goiler/pkg/http_json"
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
-	"github.com/eerzho/telegram-ai/pkg/sse"
+	"github.com/eerzho/telegram_ai/pkg/sse"
 )
 
 // HTTPv1 godoc
@@ -20,8 +20,8 @@ import (
 //
 // @produce json,event-stream
 // @success 200 {object} sse.Event
-// @failure 400 {object} json.Error
-// @failure 500 {object} json.Error
+// @failure 400 {object} httpjson.Error
+// @failure 500 {object} httpjson.Error
 //
 // @router /v1/improvements/generate [post].
 func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {

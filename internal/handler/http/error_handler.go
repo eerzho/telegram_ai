@@ -8,7 +8,7 @@ import (
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
 	httpjson "github.com/eerzho/goiler/pkg/http_json"
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
-	"github.com/eerzho/telegram-ai/internal/domain"
+	"github.com/eerzho/telegram_ai/internal/domain"
 	"github.com/go-playground/validator/v10"
 )
 

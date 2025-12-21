@@ -7,7 +7,7 @@ import (
 	bodysize "github.com/eerzho/goiler/pkg/body_size"
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
 	"github.com/eerzho/goiler/pkg/logger"
-	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
+	"github.com/eerzho/telegram_ai/internal/adapter/genkit"
 	"github.com/joho/godotenv"
 )
 

@@ -1,6 +1,6 @@
 package improvementgenerate
 
-import "github.com/eerzho/telegram-ai/pkg/sse"
+import "github.com/eerzho/telegram_ai/pkg/sse"
 
 type Input struct {
 	Text string `json:"text" validate:"required,min=1"`

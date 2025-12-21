@@ -1,8 +1,8 @@
 package summarygenerate
 
 import (
-	"github.com/eerzho/telegram-ai/internal/domain"
-	"github.com/eerzho/telegram-ai/pkg/sse"
+	"github.com/eerzho/telegram_ai/internal/domain"
+	"github.com/eerzho/telegram_ai/pkg/sse"
 )
 
 type Input struct {
