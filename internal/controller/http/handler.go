@@ -4,17 +4,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	bodysize "github.com/eerzho/goiler/pkg/body_size"
+	httpserver "github.com/eerzho/goiler/pkg/http_server"
+	"github.com/eerzho/goiler/pkg/logging"
+	"github.com/eerzho/goiler/pkg/recovery"
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram-ai/internal/config"
 	healthcheck "github.com/eerzho/telegram-ai/internal/health/health_check"
 	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
 	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
 	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
-	bodysize "github.com/eerzho/telegram-ai/pkg/body_size"
-	"github.com/eerzho/telegram-ai/pkg/cors"
-	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
-	"github.com/eerzho/telegram-ai/pkg/logging"
-	"github.com/eerzho/telegram-ai/pkg/recovery"
 	swagger "github.com/swaggo/http-swagger"
 )
 
@@ -39,27 +38,27 @@ func Handler() http.Handler {
 
 	mux.Handle(
 		"GET /_hc",
-		httphandler.Wrap(healthcheck.HTTPv1(
+		httpserver.Wrap(healthcheck.HTTPv1(
 			simpledi.Get[*healthcheck.Usecase]("healthCheckUsecase"),
 		), errorHandler),
 	)
 	mux.Handle(
 		"POST /v1/responses/generate",
-		httphandler.Wrap(responsegenerate.HTTPv1(
+		httpserver.Wrap(responsegenerate.HTTPv1(
 			logger,
 			simpledi.Get[*responsegenerate.Usecase]("responseGenerateUsecase"),
 		), errorHandler),
 	)
 	mux.Handle(
 		"POST /v1/summaries/generate",
-		httphandler.Wrap(summarygenerate.HTTPv1(
+		httpserver.Wrap(summarygenerate.HTTPv1(
 			logger,
 			simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase"),
 		), errorHandler),
 	)
 	mux.Handle(
 		"POST /v1/improvements/generate",
-		httphandler.Wrap(improvementgenerate.HTTPv1(
+		httpserver.Wrap(improvementgenerate.HTTPv1(
 			logger,
 			simpledi.Get[*improvementgenerate.Usecase]("improvementGenerateUsecase"),
 		), errorHandler),
@@ -67,7 +66,6 @@ func Handler() http.Handler {
 
 	var handler http.Handler = mux
 	handler = bodysize.Middleware(cfg.BodySize)(handler)
-	handler = cors.Middleware(cfg.CORS)(handler)
 	handler = logging.Middleware(logger)(handler)
 	handler = recovery.Middleware(logger)(handler)
 	return handler

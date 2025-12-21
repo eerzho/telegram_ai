@@ -9,6 +9,9 @@ import (
 	"syscall"
 	"time"
 
+	autootel "github.com/eerzho/goiler/pkg/auto_otel"
+	httpserver "github.com/eerzho/goiler/pkg/http_server"
+	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/simpledi"
 	_ "github.com/eerzho/telegram-ai/docs"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
@@ -18,9 +21,6 @@ import (
 	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
 	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
 	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
-	autootel "github.com/eerzho/telegram-ai/pkg/auto_otel"
-	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
-	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
 )

@@ -4,57 +4,55 @@ dotenv:
   - .env
 
 vars:
-  IMAGE_NAME: telegram-ai-http-prod
+  IMAGE_PREFIX: prod
 
 tasks:
+  default:
+    cmds:
+      - task --list
+
   pre:commit:
-    desc: "Prepare for commit"
+    desc: "Run pre commit checks"
     deps:
       - lint
       - docs:swagger
 
   http:dev:
-    desc: "Run http for dev"
+    desc: "Run HTTP dev server"
     cmds:
       - go run ./cmd/http/main.go
 
   http:build:
-    desc: "Build http"
+    desc: "Build HTTP binary"
     cmds:
-      - go build -ldflags="-s -w" -o ./main ./cmd/http/main.go
+      - go build -ldflags="-s -w" -o ./http ./cmd/http/main.go
 
   http:run:
-    desc: "Run http"
+    desc: "Run HTTP binary"
     cmds:
-      - ./main
-
-  docker:http:build:
-    desc: "Build docker image for http"
-    cmds:
-      - docker build --target prod -t {{.IMAGE_NAME}}  -f ./docker/http/Dockerfile .
-
-  docker:http:run:
-    desc: "Run docker image for http"
-    cmds:
-      - docker run --rm --env-file .env -p 80:80 {{.IMAGE_NAME}}
+      - ./http
 
   lint:
-    desc: "Run all lints"
-    deps:
-      - lint:docker
-      - lint:golang
-
-  lint:docker:
-    desc: "Run lint on Dockerfile"
-    cmds:
-      - hadolint ./docker/http/Dockerfile
-
-  lint:golang:
-    desc: "Run lint on Golang"
+    desc: "Lint Go code"
     cmds:
       - golangci-lint run --config .golangci.yml --fix
 
   docs:swagger:
-    desc: "Generate Swagger documentation"
+    desc: "Generate Swagger docs"
     cmds:
       - swag init -g ./internal/controller/http/handler.go
+
+  migrations:create:
+    desc: "Create new migration"
+    cmds:
+      - goose create {{.CLI_ARGS}} sql
+
+  migrations:up:
+    desc: "Apply migrations"
+    cmds:
+      - goose {{if .CLI_ARGS}}up-to {{.CLI_ARGS}}{{else}}up{{end}}
+
+  migrations:down:
+    desc: "Rollback migrations"
+    cmds:
+      - goose {{if .CLI_ARGS}}down-to {{.CLI_ARGS}}{{else}}down{{end}}

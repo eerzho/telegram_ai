@@ -4,11 +4,10 @@ import (
 	"fmt"
 
 	"github.com/caarlos0/env/v11"
+	bodysize "github.com/eerzho/goiler/pkg/body_size"
+	httpserver "github.com/eerzho/goiler/pkg/http_server"
+	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
-	bodysize "github.com/eerzho/telegram-ai/pkg/body_size"
-	"github.com/eerzho/telegram-ai/pkg/cors"
-	httpserver "github.com/eerzho/telegram-ai/pkg/http_server"
-	"github.com/eerzho/telegram-ai/pkg/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -22,7 +21,6 @@ type Config struct {
 	App        App
 	Logger     logger.Config
 	HTTPServer httpserver.Config
-	CORS       cors.Config
 	Genkit     genkit.Config
 	BodySize   bodysize.Config
 }

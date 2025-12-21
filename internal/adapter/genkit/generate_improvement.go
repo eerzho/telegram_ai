@@ -3,7 +3,7 @@ package genkit
 import (
 	"context"
 
-	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
+	errorhelp "github.com/eerzho/goiler/pkg/error_help"
 	"github.com/firebase/genkit/go/ai"
 	"github.com/firebase/genkit/go/genkit"
 )

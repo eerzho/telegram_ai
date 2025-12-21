@@ -4,9 +4,9 @@ import (
 	"log/slog"
 	"net/http"
 
-	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
-	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
-	"github.com/eerzho/telegram-ai/pkg/json"
+	errorhelp "github.com/eerzho/goiler/pkg/error_help"
+	httpjson "github.com/eerzho/goiler/pkg/http_json"
+	httpserver "github.com/eerzho/goiler/pkg/http_server"
 	"github.com/eerzho/telegram-ai/pkg/sse"
 )
 
@@ -24,14 +24,14 @@ import (
 // @failure 500 {object} json.Error
 //
 // @router /v1/summaries/generate [post].
-func HTTPv1(logger *slog.Logger, usecase *Usecase) httphandler.HandlerFunc {
+func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "summary_generate.HTTPv1"
 
 		defer r.Body.Close()
 		ctx := r.Context()
 
-		input, err := json.Decode[Input](r)
+		input, err := httpjson.Decode[Input](r)
 		if err != nil {
 			return errorhelp.WithOP(op, err)
 		}

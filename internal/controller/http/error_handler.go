@@ -5,26 +5,26 @@ import (
 	"log/slog"
 	"net/http"
 
+	errorhelp "github.com/eerzho/goiler/pkg/error_help"
+	httpjson "github.com/eerzho/goiler/pkg/http_json"
+	httpserver "github.com/eerzho/goiler/pkg/http_server"
 	"github.com/eerzho/telegram-ai/internal/domain"
-	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
-	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
-	"github.com/eerzho/telegram-ai/pkg/json"
 	"github.com/go-playground/validator/v10"
 )
 
-func errorHandler(logger *slog.Logger) httphandler.ErrorHandler {
+func errorHandler(logger *slog.Logger) httpserver.ErrorHandler {
 	return func(w http.ResponseWriter, r *http.Request, err error) {
 		logLevel := errorLogLevel(err)
 		logger.Log(r.Context(), logLevel, "request failed", slog.Any("error", err))
 
 		jsonError := errorToJSON(err)
-		json.EncodeError(w, jsonError)
+		httpjson.EncodeError(w, jsonError)
 	}
 }
 
 func errorLogLevel(err error) slog.Level {
 	switch {
-	case errors.Is(err, json.ErrInvalidContentType):
+	case errors.Is(err, httpjson.ErrInvalidContentType):
 		return slog.LevelInfo
 	case errorhelp.Any(
 		err,
@@ -42,20 +42,20 @@ func errorLogLevel(err error) slog.Level {
 	return slog.LevelError
 }
 
-func errorToJSON(err error) json.Error {
+func errorToJSON(err error) httpjson.Error {
 	switch {
-	case errors.Is(err, json.ErrInvalidContentType):
-		return json.Error{
+	case errors.Is(err, httpjson.ErrInvalidContentType):
+		return httpjson.Error{
 			Status:  http.StatusBadRequest,
 			Message: http.StatusText(http.StatusBadRequest),
 		}
 	case errors.Is(err, domain.ErrTooManyGenerateRequests):
-		return json.Error{
+		return httpjson.Error{
 			Status:  http.StatusTooManyRequests,
 			Message: "Please try again later.",
 		}
 	case errors.Is(err, domain.ErrGenerationTimeout):
-		return json.Error{
+		return httpjson.Error{
 			Status:  http.StatusRequestTimeout,
 			Message: "Please try again later.",
 		}
@@ -63,24 +63,24 @@ func errorToJSON(err error) json.Error {
 
 	var validationErrors validator.ValidationErrors
 	if errors.As(err, &validationErrors) {
-		return json.Error{
+		return httpjson.Error{
 			Status:  http.StatusBadRequest,
 			Message: http.StatusText(http.StatusBadRequest),
 			Details: validationErrorsToDetails(validationErrors),
 		}
 	}
 
-	return json.Error{
+	return httpjson.Error{
 		Status:  http.StatusInternalServerError,
 		Message: http.StatusText(http.StatusInternalServerError),
 	}
 }
 
-func validationErrorsToDetails(validationErrors validator.ValidationErrors) []json.ErrorDetail {
-	details := make([]json.ErrorDetail, 0, len(validationErrors))
+func validationErrorsToDetails(validationErrors validator.ValidationErrors) []httpjson.ErrorDetail {
+	details := make([]httpjson.ErrorDetail, 0, len(validationErrors))
 	for _, fieldError := range validationErrors {
 		message := fieldErrorMessage(fieldError)
-		details = append(details, json.ErrorDetail{
+		details = append(details, httpjson.ErrorDetail{
 			Field:   fieldError.Field(),
 			Message: message,
 		})

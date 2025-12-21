@@ -3,9 +3,9 @@ package healthcheck
 import (
 	"net/http"
 
-	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
-	httphandler "github.com/eerzho/telegram-ai/pkg/http_handler"
-	"github.com/eerzho/telegram-ai/pkg/json"
+	errorhelp "github.com/eerzho/goiler/pkg/error_help"
+	httpjson "github.com/eerzho/goiler/pkg/http_json"
+	httpserver "github.com/eerzho/goiler/pkg/http_server"
 )
 
 // HTTPv1 godoc
@@ -19,7 +19,7 @@ import (
 // @failure 500 {object} json.Error
 //
 // @router /_hc [get].
-func HTTPv1(usecase *Usecase) httphandler.HandlerFunc {
+func HTTPv1(usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "health_check.HTTPv1"
 
@@ -31,7 +31,7 @@ func HTTPv1(usecase *Usecase) httphandler.HandlerFunc {
 			return errorhelp.WithOP(op, err)
 		}
 
-		json.Encode(w, http.StatusOK, output)
+		httpjson.Encode(w, http.StatusOK, output)
 		return nil
 	}
 }

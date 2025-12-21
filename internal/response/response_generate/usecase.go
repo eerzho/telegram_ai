@@ -6,8 +6,8 @@ import (
 	"slices"
 	"time"
 
+	errorhelp "github.com/eerzho/goiler/pkg/error_help"
 	"github.com/eerzho/telegram-ai/internal/domain"
-	errorhelp "github.com/eerzho/telegram-ai/pkg/error_help"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
 )
