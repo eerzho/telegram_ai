@@ -9,20 +9,13 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/eerzho/goiler/docs"
 	autootel "github.com/eerzho/goiler/pkg/auto_otel"
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
-	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/simpledi"
-	_ "github.com/eerzho/telegram-ai/docs"
-	"github.com/eerzho/telegram-ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram-ai/internal/config"
-	"github.com/eerzho/telegram-ai/internal/controller/http"
-	healthcheck "github.com/eerzho/telegram-ai/internal/health/health_check"
-	improvementgenerate "github.com/eerzho/telegram-ai/internal/improvement/improvement_generate"
-	responsegenerate "github.com/eerzho/telegram-ai/internal/response/response_generate"
-	summarygenerate "github.com/eerzho/telegram-ai/internal/summary/summary_generate"
-	"github.com/go-playground/validator/v10"
-	"golang.org/x/sync/semaphore"
+	"github.com/eerzho/telegram-ai/internal/container"
+	"github.com/eerzho/telegram-ai/internal/handler/http"
 )
 
 const (
@@ -38,15 +31,15 @@ func main() {
 }
 
 func run(ctx context.Context) error {
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
+	signalCtx, signalCancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer signalCancel()
 
-	otel, err := autootel.Setup(ctx)
+	otel, err := autootel.Setup(signalCtx)
 	if err != nil {
-		return fmt.Errorf("otel: %w", err)
+		return fmt.Errorf("failed to setup otel: %w", err)
 	}
 
-	for _, definition := range definitions() {
+	for _, definition := range container.Definitions() {
 		simpledi.Set(definition)
 	}
 
@@ -71,11 +64,11 @@ func run(ctx context.Context) error {
 	select {
 	case err = <-serverErrs:
 		return fmt.Errorf("server: %w", err)
-	case <-ctx.Done():
-		lgr.InfoContext(ctx, "shutdown signal received")
+	case <-signalCtx.Done():
+		lgr.InfoContext(signalCtx, "shutdown signal received")
 	}
 
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
+	shutdownCtx, shutdownCancel := context.WithTimeout(ctx, shutdownTimeout*time.Second)
 	defer shutdownCancel()
 
 	if err = httpServer.Shutdown(shutdownCtx); err != nil {
@@ -93,87 +86,4 @@ func run(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func definitions() []simpledi.Definition {
-	return []simpledi.Definition{
-		{
-			ID: "config",
-			New: func() any {
-				return config.MustNew()
-			},
-		},
-		{
-			ID:   "logger",
-			Deps: []string{"config"},
-			New: func() any {
-				cfg := simpledi.Get[config.Config]("config")
-				return logger.New(cfg.Logger, autootel.NewSlogHandler())
-			},
-		},
-		{
-			ID: "validate",
-			New: func() any {
-				return validator.New(validator.WithRequiredStructEnabled())
-			},
-		},
-		{
-			ID:   "genkit",
-			Deps: []string{"config"},
-			New: func() any {
-				cfg := simpledi.Get[config.Config]("config")
-				return genkit.New(cfg.Genkit)
-			},
-		},
-		{
-			ID:   "generatorSem",
-			Deps: []string{"config"},
-			New: func() any {
-				cfg := simpledi.Get[config.Config]("config")
-				return semaphore.NewWeighted(cfg.App.GeneratorSemSize)
-			},
-		},
-		{
-			ID:   "healthCheckUsecase",
-			Deps: []string{"config"},
-			New: func() any {
-				cfg := simpledi.Get[config.Config]("config")
-				return healthcheck.NewUsecase(cfg.App.Version)
-			},
-		},
-		{
-			ID:   "responseGenerateUsecase",
-			Deps: []string{"generatorSem", "validate", "genkit"},
-			New: func() any {
-				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
-				validate := simpledi.Get[*validator.Validate]("validate")
-				client := simpledi.Get[*genkit.Client]("genkit")
-				return responsegenerate.NewUsecase(generatorSem, validate, client)
-			},
-		},
-		{
-			ID:   "summaryGenerateUsecase",
-			Deps: []string{"generatorSem", "validate", "genkit"},
-			New: func() any {
-				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
-				validate := simpledi.Get[*validator.Validate]("validate")
-				client := simpledi.Get[*genkit.Client]("genkit")
-				return summarygenerate.NewUsecase(
-					generatorSem,
-					validate,
-					client,
-				)
-			},
-		},
-		{
-			ID:   "improvementGenerateUsecase",
-			Deps: []string{"generatorSem", "validate", "genkit"},
-			New: func() any {
-				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
-				validate := simpledi.Get[*validator.Validate]("validate")
-				client := simpledi.Get[*genkit.Client]("genkit")
-				return improvementgenerate.NewUsecase(generatorSem, validate, client)
-			},
-		},
-	}
 }
