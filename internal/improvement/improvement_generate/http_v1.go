@@ -28,8 +28,8 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "improvement_generate.HTTPv1"
 
-		defer r.Body.Close()
 		ctx := r.Context()
+		defer r.Body.Close()
 
 		input, err := httpjson.Decode[Input](r)
 		if err != nil {
@@ -41,13 +41,7 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
 			return errorhelp.WithOP(op, err)
 		}
 
-		sseWriter, err := sse.NewWriter(w)
-		if err != nil {
-			return errorhelp.WithOP(op, err)
-		}
-		defer sseWriter.Close()
-
-		if err = sseWriter.Stream(ctx, &output); err != nil {
+		if err = sse.Stream(ctx, w, &output); err != nil {
 			logger.ErrorContext(ctx, "stream error", slog.Any("error", errorhelp.WithOP(op, err)))
 		}
 
