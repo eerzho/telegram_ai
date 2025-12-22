@@ -23,8 +23,8 @@ func HTTPv1(usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "health_check.HTTPv1"
 
-		defer r.Body.Close()
 		ctx := r.Context()
+		defer r.Body.Close()
 
 		output, err := usecase.Execute(ctx, Input{})
 		if err != nil {

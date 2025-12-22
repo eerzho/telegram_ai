@@ -28,8 +28,8 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "response_generate.HTTPv1"
 
-		defer r.Body.Close()
 		ctx := r.Context()
+		defer r.Body.Close()
 
 		input, err := httpjson.Decode[Input](r)
 		if err != nil {

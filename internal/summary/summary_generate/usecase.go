@@ -1,11 +1,8 @@
 package summarygenerate
 
 import (
-	"cmp"
 	"context"
 	"encoding/json"
-	"slices"
-	"strings"
 	"time"
 
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
@@ -21,7 +18,6 @@ const (
 type Generator interface {
 	GenerateSummary(
 		ctx context.Context,
-		language string,
 		dialog domain.Dialog,
 		onChunk func(chunk string) error,
 	) error
@@ -67,14 +63,8 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		genCtx, genCancel := context.WithTimeoutCause(ctx, generationTimeout*time.Second, domain.ErrGenerationTimeout)
 		defer genCancel()
 
-		slices.SortFunc(input.Messages, func(a, b InputMessage) int {
-			return cmp.Compare(a.Date, b.Date)
-		})
-
-		var builder strings.Builder
-		err := u.generator.GenerateSummary(genCtx, input.Language, input.ToDialog(),
+		err := u.generator.GenerateSummary(genCtx, input.ToDialog(),
 			func(chunk string) error {
-				builder.WriteString(chunk)
 				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})
 				if err != nil {
 					return errorhelp.WithOP(op, err)

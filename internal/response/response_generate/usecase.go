@@ -1,9 +1,8 @@
 package responsegenerate
 
 import (
-	"cmp"
 	"context"
-	"slices"
+	"encoding/json"
 	"time"
 
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
@@ -64,16 +63,16 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		genCtx, cancel := context.WithTimeoutCause(ctx, generationTimeout*time.Second, domain.ErrGenerationTimeout)
 		defer cancel()
 
-		slices.SortFunc(input.Messages, func(a, b InputMessage) int {
-			return cmp.Compare(a.Date, b.Date)
-		})
-
 		err := u.generator.GenerateResponse(genCtx, input.ToDialog(),
 			func(chunk string) error {
+				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})
+				if err != nil {
+					return errorhelp.WithOP(op, err)
+				}
 				select {
 				case <-genCtx.Done():
 					return genCtx.Err()
-				case textChan <- chunk:
+				case textChan <- string(jsonChunk):
 					return nil
 				}
 			},

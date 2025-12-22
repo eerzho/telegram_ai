@@ -6,13 +6,14 @@ import (
 )
 
 type Input struct {
+	Language string         `json:"language" validate:"required,min=2,max=2"`
 	Owner    InputUser      `json:"owner"    validate:"required"`
 	Messages []InputMessage `json:"messages" validate:"required,min=1,max=1000,dive"`
 }
 
 type InputUser struct {
-	ChatID   string `json:"chat_id" validate:"required,min=1"`
-	Nickname string `json:"name"    validate:"required,min=1"`
+	ChatID string `json:"chat_id" validate:"required,min=1"`
+	Name   string `json:"name"    validate:"required,min=1"`
 }
 
 type InputMessage struct {
@@ -21,34 +22,35 @@ type InputMessage struct {
 	Date   int       `json:"date"   validate:"required,gt=0"`
 }
 
-type Output struct {
-	TextChan <-chan string
-	ErrChan  <-chan error
-}
-
 func (i Input) ToDialog() domain.Dialog {
 	messages := make([]domain.Message, 0, len(i.Messages))
 	for _, msg := range i.Messages {
 		messages = append(messages, msg.ToMessage())
 	}
 	return domain.Dialog{
-		Owner: domain.User{
-			ChatID:   i.Owner.ChatID,
-			Nickname: i.Owner.Nickname,
-		},
+		Owner:    i.Owner.ToUser(),
 		Messages: messages,
+	}
+}
+
+func (i InputUser) ToUser() domain.User {
+	return domain.User{
+		ChatID: i.ChatID,
+		Name:   i.Name,
 	}
 }
 
 func (i InputMessage) ToMessage() domain.Message {
 	return domain.Message{
-		Sender: domain.User{
-			ChatID:   i.Sender.ChatID,
-			Nickname: i.Sender.Nickname,
-		},
-		Text: i.Text,
-		Date: i.Date,
+		Sender: i.Sender.ToUser(),
+		Text:   i.Text,
+		Date:   i.Date,
 	}
+}
+
+type Output struct {
+	TextChan <-chan string
+	ErrChan  <-chan error
 }
 
 func (o *Output) Next() (sse.Event, bool) {
