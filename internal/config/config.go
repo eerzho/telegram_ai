@@ -8,6 +8,7 @@ import (
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
 	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/telegram_ai/internal/adapter/genkit"
+	"github.com/eerzho/telegram_ai/pkg/cors"
 	"github.com/joho/godotenv"
 )
 
@@ -23,6 +24,7 @@ type Config struct {
 	HTTPServer httpserver.Config
 	Genkit     genkit.Config
 	BodySize   bodysize.Config
+	CORS       cors.Config
 }
 
 func MustNew() Config {
