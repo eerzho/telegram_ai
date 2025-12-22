@@ -4,7 +4,6 @@ Backend service for Telegram web client that integrates AI capabilities using Fi
 
 ## Requirements
 
-- **goose**: [Install](https://pressly.github.io/goose) or  `brew install goose` (macOS)
 - **taskfile**: [Install](https://taskfile.dev) or `brew install go-task` (macOS)
 - **golangci-lint**: [Install](https://golangci-lint.run) or `brew install golangci-lint` (macOS)
 
