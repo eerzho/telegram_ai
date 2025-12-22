@@ -2,6 +2,7 @@ package improvementgenerate
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
@@ -63,10 +64,14 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 
 		err := u.generator.GenerateImprovement(genCtx, input.Text,
 			func(chunk string) error {
+				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})
+				if err != nil {
+					return errorhelp.WithOP(op, err)
+				}
 				select {
 				case <-genCtx.Done():
 					return genCtx.Err()
-				case textChan <- chunk:
+				case textChan <- string(jsonChunk):
 					return nil
 				}
 			},
