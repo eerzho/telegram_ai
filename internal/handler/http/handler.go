@@ -14,6 +14,7 @@ import (
 	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
 	responsegenerate "github.com/eerzho/telegram_ai/internal/response/response_generate"
 	summarygenerate "github.com/eerzho/telegram_ai/internal/summary/summary_generate"
+	"github.com/eerzho/telegram_ai/pkg/cors"
 	swagger "github.com/swaggo/http-swagger"
 )
 
@@ -69,6 +70,7 @@ func Handler() http.Handler {
 	)
 
 	var handler http.Handler = mux
+	handler = cors.Middleware(cfg.CORS)(handler)
 	handler = bodysize.Middleware(cfg.BodySize)(handler)
 	handler = logging.Middleware(logger)(handler)
 	handler = recovery.Middleware(logger)(handler)
