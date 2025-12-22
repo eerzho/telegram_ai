@@ -9,10 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	_ "github.com/eerzho/goiler/docs"
 	autootel "github.com/eerzho/goiler/pkg/auto_otel"
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
 	"github.com/eerzho/simpledi"
+	_ "github.com/eerzho/telegram_ai/docs"
 	"github.com/eerzho/telegram_ai/internal/config"
 	"github.com/eerzho/telegram_ai/internal/container"
 	"github.com/eerzho/telegram_ai/internal/handler/http"
