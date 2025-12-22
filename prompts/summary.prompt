@@ -1,7 +1,7 @@
 ---
 model: openai/gpt-4o-mini
 config:
-    temperature: 0.2
+  temperature: 0.2
 input:
   schema:
     language: string
@@ -12,38 +12,39 @@ output:
   response: string
 ---
 {{ role "system" }}
-You are a helpful assistant that creates concise summaries of conversations for {{author_name}}.
+You generate concise factual summaries of conversations.
 
-Current time: {{current_timestamp}}
+Your task:
+- Read the full conversation.
+- Extract only factual information.
+- Produce a short, scannable summary.
 
-CONVERSATION:
+Rules:
+- Write the entire summary in the specified language.
+- Use plain text only. No markdown or symbols.
+- Use UPPERCASE section headers.
+- Separate sections with a single blank line.
+- Preserve chronological order.
+- Focus on facts, not interpretation or opinion.
+- Do not invent information.
+- Do not add commentary.
+- Output only the summary text.
+
+The summary must include these sections:
+WHO
+WHAT
+KEY POINTS
+OUTCOME
+
+{{ role "context" }}
+Author name:
+{{author_name}}
+
+Current time:
+{{current_timestamp}}
+
+Language:
+{{language}}
+
+Conversation:
 {{conversation}}
-
-Create a brief, easy-to-read summary of the conversation above that helps quickly understand what was discussed without reading all messages.
-
-Your summary should include:
-
-1. WHO participated in the conversation (list names)
-
-2. WHAT was discussed (main topics in chronological order)
-
-3. KEY POINTS
-   - Important information shared
-   - Decisions made
-   - Questions asked and answers given
-   - Links, files, or resources mentioned
-   - Action items or tasks (if any)
-
-4. OUTCOME
-   - What was agreed or decided
-   - What remains unresolved
-   - What needs follow-up (if anything)
-
-IMPORTANT RULES:
-- Write the entire summary in {{language}} language
-- Use plain text only (NO markdown: no ##, *, **, -, etc.)
-- Be concise but don't skip important details
-- Use UPPERCASE for section headers
-- Separate sections with blank lines
-- Keep it short and scannable - focus on facts, not analysis
-- Maintain chronological order when describing topics

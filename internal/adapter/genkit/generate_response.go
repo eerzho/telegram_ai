@@ -1,8 +1,10 @@
 package genkit
 
 import (
+	"cmp"
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -19,14 +21,15 @@ func (c *Client) GenerateResponse(
 ) error {
 	const op = "genkit.Client.GenerateResponse"
 
-	promptName, input := c.createInputForResponse(dialog)
+	promptName, data := c.responseData(dialog)
+
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
 		return errorhelp.WithOP(op, ErrPromptNotFound)
 	}
 
 	_, err := prompt.Execute(ctx,
-		ai.WithInput(input),
+		ai.WithInput(data),
 		ai.WithStreaming(func(_ context.Context, chunk *ai.ModelResponseChunk) error {
 			text := chunk.Text()
 			if text != "" {
@@ -42,51 +45,37 @@ func (c *Client) GenerateResponse(
 	return nil
 }
 
-func (c *Client) createInputForResponse(dialog domain.Dialog) (string, map[string]any) {
-	const (
-		maxAuthorMessages      = 50
-		maxConversationContext = 20
-	)
+func (c *Client) responseData(dialog domain.Dialog) (string, map[string]any) {
+	slices.SortFunc(dialog.Messages, func(a, b domain.Message) int {
+		return cmp.Compare(a.Date, b.Date)
+	})
 
-	promptName := "response_without_style"
 	hasAuthorMessages := false
 
 	var authorMessagesBuilder strings.Builder
 	var conversationBuilder strings.Builder
 
-	authorMessageCount := 0
 	for _, msg := range dialog.Messages {
 		if dialog.Owner.ChatID == msg.Sender.ChatID {
 			hasAuthorMessages = true
-			if authorMessageCount < maxAuthorMessages {
-				authorMessagesBuilder.WriteString(fmt.Sprintf("- %s\n", msg.Text))
-				authorMessageCount++
-			}
+			authorMessagesBuilder.WriteString(fmt.Sprintf("- %s\n", msg.Text))
 		}
-	}
-
-	contextMessages := dialog.Messages
-	if len(contextMessages) > maxConversationContext {
-		contextMessages = contextMessages[len(contextMessages)-maxConversationContext:]
-	}
-	for _, msg := range contextMessages {
-		timestamp := time.Unix(int64(msg.Date), 0).Format(time.DateTime)
 		conversationBuilder.WriteString(fmt.Sprintf("[%s] %s: %s\n",
-			timestamp,
-			msg.Sender.Nickname,
+			time.Unix(int64(msg.Date), 0).Format(time.DateTime),
+			msg.Sender.Name,
 			msg.Text,
 		))
 	}
 
-	input := map[string]any{
-		"author_name":       dialog.Owner.Nickname,
-		"current_timestamp": time.Now().Format(time.DateTime),
-		"conversation":      conversationBuilder.String(),
+	promptName := "response_without_style"
+	data := map[string]any{
+		"author_name":  dialog.Owner.Name,
+		"conversation": conversationBuilder.String(),
 	}
 	if hasAuthorMessages {
 		promptName = "response_with_style"
-		input["author_messages"] = strings.TrimSpace(authorMessagesBuilder.String())
+		data["author_messages"] = authorMessagesBuilder.String()
 	}
 
-	return promptName, input
+	return promptName, data
 }

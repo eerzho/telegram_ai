@@ -15,15 +15,15 @@ func (c *Client) GenerateImprovement(
 ) error {
 	const op = "genkit.Client.GenerateImprovement"
 
-	promptName := "improvement"
+	promptName, data := c.improvementData(text)
+
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
 		return errorhelp.WithOP(op, ErrPromptNotFound)
 	}
 
-	input := map[string]any{"text": text}
 	_, err := prompt.Execute(ctx,
-		ai.WithInput(input),
+		ai.WithInput(data),
 		ai.WithStreaming(func(_ context.Context, aiChunk *ai.ModelResponseChunk) error {
 			chunk := aiChunk.Text()
 			if chunk != "" {
@@ -35,5 +35,12 @@ func (c *Client) GenerateImprovement(
 	if err != nil {
 		return errorhelp.WithOP(op, err)
 	}
+
 	return nil
+}
+
+func (c *Client) improvementData(text string) (string, map[string]any) {
+	promptName := "improvement"
+	data := map[string]any{"text": text}
+	return promptName, data
 }

@@ -1,8 +1,10 @@
 package genkit
 
 import (
+	"cmp"
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -14,21 +16,20 @@ import (
 
 func (c *Client) GenerateSummary(
 	ctx context.Context,
-	language string,
 	dialog domain.Dialog,
 	onChunk func(chunk string) error,
 ) error {
 	const op = "genkit.Client.GenerateSummary"
 
-	promptName := "summary"
-	input := c.createInputForSummary(language, dialog)
+	promptName, data := c.summaryData(dialog)
+
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
 		return errorhelp.WithOP(op, ErrPromptNotFound)
 	}
 
 	_, err := prompt.Execute(ctx,
-		ai.WithInput(input),
+		ai.WithInput(data),
 		ai.WithStreaming(func(_ context.Context, chunk *ai.ModelResponseChunk) error {
 			text := chunk.Text()
 			if text != "" {
@@ -40,27 +41,32 @@ func (c *Client) GenerateSummary(
 	if err != nil {
 		return errorhelp.WithOP(op, err)
 	}
+
 	return nil
 }
 
-func (c *Client) createInputForSummary(language string, dialog domain.Dialog) map[string]any {
+func (c *Client) summaryData(dialog domain.Dialog) (string, map[string]any) {
+	slices.SortFunc(dialog.Messages, func(a, b domain.Message) int {
+		return cmp.Compare(a.Date, b.Date)
+	})
+
 	var conversationBuilder strings.Builder
 
 	for _, msg := range dialog.Messages {
-		timestamp := time.Unix(int64(msg.Date), 0).Format(time.DateTime)
 		conversationBuilder.WriteString(fmt.Sprintf("[%s] %s: %s\n",
-			timestamp,
-			msg.Sender.Nickname,
+			time.Unix(int64(msg.Date), 0).Format(time.DateTime),
+			msg.Sender.Name,
 			msg.Text,
 		))
 	}
 
-	input := map[string]any{
-		"language":          language,
-		"author_name":       dialog.Owner.Nickname,
+	promptName := "summary"
+	data := map[string]any{
+		"language":          dialog.Language,
+		"author_name":       dialog.Owner.Name,
 		"current_timestamp": time.Now().Format(time.DateTime),
 		"conversation":      conversationBuilder.String(),
 	}
 
-	return input
+	return promptName, data
 }
