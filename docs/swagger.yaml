@@ -49,6 +49,10 @@ definitions:
     type: object
   internal_response_response_generate.Input:
     properties:
+      language:
+        maxLength: 2
+        minLength: 2
+        type: string
       messages:
         items:
           $ref: '#/definitions/internal_response_response_generate.InputMessage'
@@ -58,6 +62,7 @@ definitions:
       owner:
         $ref: '#/definitions/internal_response_response_generate.InputUser'
     required:
+    - language
     - messages
     - owner
     type: object
@@ -100,21 +105,18 @@ definitions:
         minItems: 1
         type: array
       owner:
-        $ref: '#/definitions/internal_summary_summary_generate.InputSender'
-      peer:
-        $ref: '#/definitions/internal_summary_summary_generate.InputSender'
+        $ref: '#/definitions/internal_summary_summary_generate.InputUser'
     required:
     - language
     - messages
     - owner
-    - peer
     type: object
   internal_summary_summary_generate.InputMessage:
     properties:
       date:
         type: integer
       sender:
-        $ref: '#/definitions/internal_summary_summary_generate.InputSender'
+        $ref: '#/definitions/internal_summary_summary_generate.InputUser'
       text:
         minLength: 1
         type: string
@@ -123,7 +125,7 @@ definitions:
     - sender
     - text
     type: object
-  internal_summary_summary_generate.InputSender:
+  internal_summary_summary_generate.InputUser:
     properties:
       chat_id:
         minLength: 1

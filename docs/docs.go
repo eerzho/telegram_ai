@@ -261,10 +261,16 @@ const docTemplate = `{
         "internal_response_response_generate.Input": {
             "type": "object",
             "required": [
+                "language",
                 "messages",
                 "owner"
             ],
             "properties": {
+                "language": {
+                    "type": "string",
+                    "maxLength": 2,
+                    "minLength": 2
+                },
                 "messages": {
                     "type": "array",
                     "maxItems": 1000,
@@ -320,8 +326,7 @@ const docTemplate = `{
             "required": [
                 "language",
                 "messages",
-                "owner",
-                "peer"
+                "owner"
             ],
             "properties": {
                 "language": {
@@ -338,10 +343,7 @@ const docTemplate = `{
                     }
                 },
                 "owner": {
-                    "$ref": "#/definitions/internal_summary_summary_generate.InputSender"
-                },
-                "peer": {
-                    "$ref": "#/definitions/internal_summary_summary_generate.InputSender"
+                    "$ref": "#/definitions/internal_summary_summary_generate.InputUser"
                 }
             }
         },
@@ -357,7 +359,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "sender": {
-                    "$ref": "#/definitions/internal_summary_summary_generate.InputSender"
+                    "$ref": "#/definitions/internal_summary_summary_generate.InputUser"
                 },
                 "text": {
                     "type": "string",
@@ -365,7 +367,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_summary_summary_generate.InputSender": {
+        "internal_summary_summary_generate.InputUser": {
             "type": "object",
             "required": [
                 "chat_id",
