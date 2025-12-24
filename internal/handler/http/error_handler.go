@@ -1,6 +1,7 @@
 package http
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -25,6 +26,10 @@ func errorHandler(logger *slog.Logger) httpserver.ErrorHandler {
 func errorLogLevel(err error) slog.Level {
 	if _, ok := errorhelp.AsType[validator.ValidationErrors](err); ok {
 		return slog.LevelInfo
+	} else if _, ok := errorhelp.AsType[*json.UnmarshalTypeError](err); ok {
+		return slog.LevelInfo
+	} else if _, ok := errorhelp.AsType[*json.SyntaxError](err); ok {
+		return slog.LevelInfo
 	} else if errorhelp.Any(
 		err,
 		httpjson.ErrInvalidContentType,
@@ -41,7 +46,27 @@ func errorLogLevel(err error) slog.Level {
 }
 
 func errorToJSON(err error) httpjson.Error {
-	if errors.Is(err, httpjson.ErrInvalidContentType) {
+	if validationErrs, ok := errorhelp.AsType[validator.ValidationErrors](err); ok {
+		return httpjson.Error{
+			Status:  http.StatusBadRequest,
+			Message: http.StatusText(http.StatusBadRequest),
+			Details: validationErrorsToDetails(validationErrs),
+		}
+	} else if unmarshalErr, ok := errorhelp.AsType[*json.UnmarshalTypeError](err); ok {
+		message := http.StatusText(http.StatusBadRequest)
+		if unmarshalErr.Field != "" {
+			message = "invalid type for field " + unmarshalErr.Field
+		}
+		return httpjson.Error{
+			Status:  http.StatusBadRequest,
+			Message: message,
+		}
+	} else if _, ok := errorhelp.AsType[*json.SyntaxError](err); ok {
+		return httpjson.Error{
+			Status:  http.StatusBadRequest,
+			Message: http.StatusText(http.StatusBadRequest),
+		}
+	} else if errors.Is(err, httpjson.ErrInvalidContentType) {
 		return httpjson.Error{
 			Status:  http.StatusBadRequest,
 			Message: http.StatusText(http.StatusBadRequest),
@@ -49,18 +74,12 @@ func errorToJSON(err error) httpjson.Error {
 	} else if errors.Is(err, domain.ErrGenerationTimeout) {
 		return httpjson.Error{
 			Status:  http.StatusRequestTimeout,
-			Message: "Please try again later.",
+			Message: http.StatusText(http.StatusRequestTimeout),
 		}
 	} else if errors.Is(err, domain.ErrTooManyGenerateRequests) {
 		return httpjson.Error{
 			Status:  http.StatusTooManyRequests,
-			Message: "Please try again later.",
-		}
-	} else if validationErrs, ok := errorhelp.AsType[validator.ValidationErrors](err); ok {
-		return httpjson.Error{
-			Status:  http.StatusBadRequest,
-			Message: http.StatusText(http.StatusBadRequest),
-			Details: validationErrorsToDetails(validationErrs),
+			Message: http.StatusText(http.StatusTooManyRequests),
 		}
 	}
 	return httpjson.Error{
