@@ -12,7 +12,7 @@ type Input struct {
 }
 
 type InputUser struct {
-	ChatID string `json:"chat_id" validate:"required,min=1"`
+	ChatID int64  `json:"chat_id" validate:"required"`
 	Name   string `json:"name"    validate:"required,min=1"`
 }
 

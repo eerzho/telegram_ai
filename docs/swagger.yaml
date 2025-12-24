@@ -83,8 +83,7 @@ definitions:
   internal_response_response_generate.InputUser:
     properties:
       chat_id:
-        minLength: 1
-        type: string
+        type: integer
       name:
         minLength: 1
         type: string
@@ -128,8 +127,7 @@ definitions:
   internal_summary_summary_generate.InputUser:
     properties:
       chat_id:
-        minLength: 1
-        type: string
+        type: integer
       name:
         minLength: 1
         type: string

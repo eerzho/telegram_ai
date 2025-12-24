@@ -312,8 +312,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "chat_id": {
-                    "type": "string",
-                    "minLength": 1
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string",
@@ -375,8 +374,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "chat_id": {
-                    "type": "string",
-                    "minLength": 1
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string",

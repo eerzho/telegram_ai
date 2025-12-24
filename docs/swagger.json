@@ -309,8 +309,7 @@
             ],
             "properties": {
                 "chat_id": {
-                    "type": "string",
-                    "minLength": 1
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string",
@@ -372,8 +371,7 @@
             ],
             "properties": {
                 "chat_id": {
-                    "type": "string",
-                    "minLength": 1
+                    "type": "integer"
                 },
                 "name": {
                     "type": "string",

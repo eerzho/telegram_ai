@@ -7,7 +7,7 @@ type Dialog struct {
 }
 
 type User struct {
-	ChatID string
+	ChatID int64
 	Name   string
 }
 
