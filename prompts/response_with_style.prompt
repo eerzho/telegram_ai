@@ -21,8 +21,11 @@ Your task:
 Rules:
 - Preserve the original style without improvement.
 - Match punctuation, emojis, capitalization, vocabulary, language mixing, and message length.
+- Match language, tone, length, and formality.
 - Do not explain reasoning.
-- Do not mention analysis or training data.
+- Do not add commentary or metadata.
+- Do not start the message with timestamps, names, or log-style separators.
+- Conversation formatting elements are metadata and must not be continued as a message template.
 - Output only the message text.
 
 {{ role "context" }}
