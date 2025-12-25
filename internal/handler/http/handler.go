@@ -10,10 +10,10 @@ import (
 	"github.com/eerzho/goiler/pkg/recovery"
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram_ai/internal/config"
-	improvementgenerate "github.com/eerzho/telegram_ai/internal/improvement/improvement_generate"
+	generateimprovement "github.com/eerzho/telegram_ai/internal/improvement/generate_improvement"
 	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
-	responsegenerate "github.com/eerzho/telegram_ai/internal/response/response_generate"
-	summarygenerate "github.com/eerzho/telegram_ai/internal/summary/summary_generate"
+	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
+	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/eerzho/telegram_ai/pkg/cors"
 	swagger "github.com/swaggo/http-swagger"
 )
@@ -47,25 +47,25 @@ func Handler() http.Handler {
 
 	mux.Handle(
 		"POST /v1/responses/generate",
-		httpserver.Wrap(responsegenerate.HTTPv1(
+		httpserver.Wrap(generateresponse.HTTPv1(
 			logger,
-			simpledi.Get[*responsegenerate.Usecase]("responseGenerateUsecase"),
+			simpledi.Get[*generateresponse.Usecase]("responseGenerateUsecase"),
 		), errorHandler),
 	)
 
 	mux.Handle(
 		"POST /v1/summaries/generate",
-		httpserver.Wrap(summarygenerate.HTTPv1(
+		httpserver.Wrap(generatesummary.HTTPv1(
 			logger,
-			simpledi.Get[*summarygenerate.Usecase]("summaryGenerateUsecase"),
+			simpledi.Get[*generatesummary.Usecase]("summaryGenerateUsecase"),
 		), errorHandler),
 	)
 
 	mux.Handle(
 		"POST /v1/improvements/generate",
-		httpserver.Wrap(improvementgenerate.HTTPv1(
+		httpserver.Wrap(generateimprovement.HTTPv1(
 			logger,
-			simpledi.Get[*improvementgenerate.Usecase]("improvementGenerateUsecase"),
+			simpledi.Get[*generateimprovement.Usecase]("improvementGenerateUsecase"),
 		), errorHandler),
 	)
 

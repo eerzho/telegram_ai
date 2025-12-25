@@ -6,10 +6,10 @@ import (
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram_ai/internal/adapter/genkit"
 	"github.com/eerzho/telegram_ai/internal/config"
-	improvementgenerate "github.com/eerzho/telegram_ai/internal/improvement/improvement_generate"
+	generateimprovement "github.com/eerzho/telegram_ai/internal/improvement/generate_improvement"
 	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
-	responsegenerate "github.com/eerzho/telegram_ai/internal/response/response_generate"
-	summarygenerate "github.com/eerzho/telegram_ai/internal/summary/summary_generate"
+	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
+	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
 )
@@ -67,7 +67,7 @@ func Definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return responsegenerate.NewUsecase(generatorSem, validate, client)
+				return generateresponse.NewUsecase(generatorSem, validate, client)
 			},
 		},
 		{
@@ -77,7 +77,7 @@ func Definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return summarygenerate.NewUsecase(
+				return generatesummary.NewUsecase(
 					generatorSem,
 					validate,
 					client,
@@ -91,7 +91,7 @@ func Definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return improvementgenerate.NewUsecase(generatorSem, validate, client)
+				return generateimprovement.NewUsecase(generatorSem, validate, client)
 			},
 		},
 	}
