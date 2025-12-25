@@ -15,7 +15,7 @@ const (
 	generationTimeout = 30 // second
 )
 
-type Generator interface {
+type generator interface {
 	GenerateSummary(
 		ctx context.Context,
 		dialog domain.Dialog,
@@ -26,13 +26,13 @@ type Generator interface {
 type Usecase struct {
 	sem       *semaphore.Weighted
 	validate  *validator.Validate
-	generator Generator
+	generator generator
 }
 
 func NewUsecase(
 	sem *semaphore.Weighted,
 	validate *validator.Validate,
-	generator Generator,
+	generator generator,
 ) *Usecase {
 	return &Usecase{
 		sem:       sem,
