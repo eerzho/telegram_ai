@@ -33,6 +33,7 @@ func errorLogLevel(err error) slog.Level {
 	} else if errorhelp.Any(
 		err,
 		httpjson.ErrInvalidContentType,
+		domain.ErrSettingAlreadyExists,
 	) {
 		return slog.LevelInfo
 	} else if errorhelp.Any(
@@ -80,6 +81,11 @@ func errorToJSON(err error) httpjson.Error {
 		return httpjson.Error{
 			Status:  http.StatusTooManyRequests,
 			Message: http.StatusText(http.StatusTooManyRequests),
+		}
+	} else if errors.Is(err, domain.ErrSettingAlreadyExists) {
+		return httpjson.Error{
+			Status:  http.StatusConflict,
+			Message: domain.ErrSettingAlreadyExists.Error(),
 		}
 	}
 	return httpjson.Error{

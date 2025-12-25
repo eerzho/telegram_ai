@@ -13,6 +13,7 @@ import (
 	generateimprovement "github.com/eerzho/telegram_ai/internal/improvement/generate_improvement"
 	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
 	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
+	createsetting "github.com/eerzho/telegram_ai/internal/setting/create_setting"
 	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/eerzho/telegram_ai/pkg/cors"
 	swagger "github.com/swaggo/http-swagger"
@@ -66,6 +67,13 @@ func Handler() http.Handler {
 		httpserver.Wrap(generateimprovement.HTTPv1(
 			logger,
 			simpledi.Get[*generateimprovement.Usecase]("improvementGenerateUsecase"),
+		), errorHandler),
+	)
+
+	mux.Handle(
+		"POST /v1/settings",
+		httpserver.Wrap(createsetting.HTTPv1(
+			simpledi.Get[*createsetting.Usecase]("createSettingUsecase"),
 		), errorHandler),
 	)
 

@@ -5,10 +5,13 @@ import (
 	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/simpledi"
 	"github.com/eerzho/telegram_ai/internal/adapter/genkit"
+	"github.com/eerzho/telegram_ai/internal/adapter/postgres"
+	"github.com/eerzho/telegram_ai/internal/adapter/valkey"
 	"github.com/eerzho/telegram_ai/internal/config"
 	generateimprovement "github.com/eerzho/telegram_ai/internal/improvement/generate_improvement"
 	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
 	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
+	createsetting "github.com/eerzho/telegram_ai/internal/setting/create_setting"
 	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
@@ -42,6 +45,31 @@ func Definitions() []simpledi.Definition {
 			New: func() any {
 				cfg := simpledi.Get[config.Config]("config")
 				return genkit.New(cfg.Genkit)
+			},
+		},
+		{
+			ID:   "postgres",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return postgres.MustNew(cfg.Postgres)
+			},
+			Close: func() error {
+				db := simpledi.Get[*postgres.DB]("postgres")
+				return db.Close()
+			},
+		},
+		{
+			ID:   "valkey",
+			Deps: []string{"config"},
+			New: func() any {
+				cfg := simpledi.Get[config.Config]("config")
+				return valkey.MustNew(cfg.Valkey)
+			},
+			Close: func() error {
+				client := simpledi.Get[*valkey.Client]("valkey")
+				client.Close()
+				return nil
 			},
 		},
 		{
@@ -92,6 +120,15 @@ func Definitions() []simpledi.Definition {
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
 				return generateimprovement.NewUsecase(generatorSem, validate, client)
+			},
+		},
+		{
+			ID:   "createSettingUsecase",
+			Deps: []string{"validate", "postgres"},
+			New: func() any {
+				validate := simpledi.Get[*validator.Validate]("validate")
+				db := simpledi.Get[*postgres.DB]("postgres")
+				return createsetting.NewUsecase(validate, db)
 			},
 		},
 	}

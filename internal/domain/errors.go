@@ -7,4 +7,5 @@ import (
 var (
 	ErrTooManyGenerateRequests = errors.New("too many generate requests")
 	ErrGenerationTimeout       = errors.New("generation timeout")
+	ErrSettingAlreadyExists    = errors.New("setting already exists")
 )

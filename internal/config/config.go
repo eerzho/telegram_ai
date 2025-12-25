@@ -8,6 +8,8 @@ import (
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
 	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/telegram_ai/internal/adapter/genkit"
+	"github.com/eerzho/telegram_ai/internal/adapter/postgres"
+	"github.com/eerzho/telegram_ai/internal/adapter/valkey"
 	"github.com/eerzho/telegram_ai/pkg/cors"
 	"github.com/joho/godotenv"
 )
@@ -25,6 +27,8 @@ type Config struct {
 	Genkit     genkit.Config
 	BodySize   bodysize.Config
 	CORS       cors.Config
+	Postgres   postgres.Config
+	Valkey     valkey.Config
 }
 
 func MustNew() Config {

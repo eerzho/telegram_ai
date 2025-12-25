@@ -16,6 +16,7 @@ import (
 	"github.com/eerzho/telegram_ai/internal/config"
 	"github.com/eerzho/telegram_ai/internal/container"
 	"github.com/eerzho/telegram_ai/internal/handler/http"
+	_ "github.com/lib/pq"
 )
 
 const (

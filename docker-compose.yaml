@@ -1,0 +1,26 @@
+services:
+  postgres:
+    container_name: postgres_${APP_NAME}
+    image: postgres:18.0
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  valkey:
+    container_name: valkey_${APP_NAME}
+    image: valkey/valkey:9.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  valkey_data:
