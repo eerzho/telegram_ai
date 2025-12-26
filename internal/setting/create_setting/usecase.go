@@ -9,7 +9,7 @@ import (
 )
 
 type storage interface {
-	CreateSetting(ctx context.Context, userID, chatID int64) (domain.Setting, error)
+	CreateSetting(ctx context.Context, userID, chatID int64, style string) (domain.Setting, error)
 }
 
 type Usecase struct {
@@ -34,7 +34,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, errorhelp.WithOP(op, err)
 	}
 
-	setting, err := u.storage.CreateSetting(ctx, input.UserID, input.ChatID)
+	setting, err := u.storage.CreateSetting(ctx, input.UserID, input.ChatID, input.Style)
 	if err != nil {
 		return Output{}, errorhelp.WithOP(op, err)
 	}
