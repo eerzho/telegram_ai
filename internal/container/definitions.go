@@ -1,6 +1,8 @@
 package container
 
 import (
+	"log/slog"
+
 	autootel "github.com/eerzho/goiler/pkg/auto_otel"
 	"github.com/eerzho/goiler/pkg/logger"
 	"github.com/eerzho/simpledi"
@@ -12,6 +14,7 @@ import (
 	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
 	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
 	createsetting "github.com/eerzho/telegram_ai/internal/setting/create_setting"
+	deletesetting "github.com/eerzho/telegram_ai/internal/setting/delete_setting"
 	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/go-playground/validator/v10"
 	"golang.org/x/sync/semaphore"
@@ -119,7 +122,11 @@ func Definitions() []simpledi.Definition {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
 				validate := simpledi.Get[*validator.Validate]("validate")
 				client := simpledi.Get[*genkit.Client]("genkit")
-				return generateimprovement.NewUsecase(generatorSem, validate, client)
+				return generateimprovement.NewUsecase(
+					generatorSem,
+					validate,
+					client,
+				)
 			},
 		},
 		{
@@ -129,6 +136,22 @@ func Definitions() []simpledi.Definition {
 				validate := simpledi.Get[*validator.Validate]("validate")
 				db := simpledi.Get[*postgres.DB]("postgres")
 				return createsetting.NewUsecase(validate, db)
+			},
+		},
+		{
+			ID:   "deleteSettingUsecase",
+			Deps: []string{"logger", "validate", "postgres", "valkey"},
+			New: func() any {
+				logger := simpledi.Get[*slog.Logger]("logger")
+				validate := simpledi.Get[*validator.Validate]("validate")
+				db := simpledi.Get[*postgres.DB]("postgres")
+				client := simpledi.Get[*valkey.Client]("valkey")
+				return deletesetting.NewUsecase(
+					logger,
+					validate,
+					db,
+					client,
+				)
 			},
 		},
 	}

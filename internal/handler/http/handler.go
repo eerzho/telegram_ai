@@ -14,6 +14,7 @@ import (
 	healthcheck "github.com/eerzho/telegram_ai/internal/monitoring/health_check"
 	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
 	createsetting "github.com/eerzho/telegram_ai/internal/setting/create_setting"
+	deletesetting "github.com/eerzho/telegram_ai/internal/setting/delete_setting"
 	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/eerzho/telegram_ai/pkg/cors"
 	swagger "github.com/swaggo/http-swagger"
@@ -74,6 +75,13 @@ func Handler() http.Handler {
 		"POST /v1/settings",
 		httpserver.Wrap(createsetting.HTTPv1(
 			simpledi.Get[*createsetting.Usecase]("createSettingUsecase"),
+		), errorHandler),
+	)
+
+	mux.Handle(
+		"DELETE /v1/settings/{user_id}/{chat_id}",
+		httpserver.Wrap(deletesetting.HTTPv1(
+			simpledi.Get[*deletesetting.Usecase]("deleteSettingUsecase"),
 		), errorHandler),
 	)
 

@@ -34,6 +34,7 @@ func errorLogLevel(err error) slog.Level {
 		err,
 		httpjson.ErrInvalidContentType,
 		domain.ErrSettingAlreadyExists,
+		domain.ErrSettingNotFound,
 	) {
 		return slog.LevelInfo
 	} else if errorhelp.Any(
@@ -86,6 +87,11 @@ func errorToJSON(err error) httpjson.Error {
 		return httpjson.Error{
 			Status:  http.StatusConflict,
 			Message: domain.ErrSettingAlreadyExists.Error(),
+		}
+	} else if errors.Is(err, domain.ErrSettingNotFound) {
+		return httpjson.Error{
+			Status:  http.StatusNotFound,
+			Message: domain.ErrSettingNotFound.Error(),
 		}
 	}
 	return httpjson.Error{
