@@ -26,78 +26,130 @@ func errorHandler(logger *slog.Logger) httpserver.ErrorHandler {
 func errorLogLevel(err error) slog.Level {
 	if _, ok := errorhelp.AsType[validator.ValidationErrors](err); ok {
 		return slog.LevelInfo
-	} else if _, ok := errorhelp.AsType[*json.UnmarshalTypeError](err); ok {
+	}
+	if _, ok := errorhelp.AsType[*json.UnmarshalTypeError](err); ok {
 		return slog.LevelInfo
-	} else if _, ok := errorhelp.AsType[*json.SyntaxError](err); ok {
+	}
+	if _, ok := errorhelp.AsType[*json.SyntaxError](err); ok {
 		return slog.LevelInfo
-	} else if errorhelp.Any(
+	}
+
+	if errorhelp.Any(
 		err,
 		httpjson.ErrInvalidContentType,
 		domain.ErrSettingAlreadyExists,
 		domain.ErrSettingNotFound,
 	) {
 		return slog.LevelInfo
-	} else if errorhelp.Any(
+	}
+
+	if errorhelp.Any(
 		err,
 		domain.ErrGenerationTimeout,
 		domain.ErrTooManyGenerateRequests,
 	) {
 		return slog.LevelWarn
 	}
+
 	return slog.LevelError
 }
 
 func errorToJSON(err error) httpjson.Error {
-	if validationErrs, ok := errorhelp.AsType[validator.ValidationErrors](err); ok {
-		return httpjson.Error{
-			Status:  http.StatusBadRequest,
-			Message: http.StatusText(http.StatusBadRequest),
-			Details: validationErrorsToDetails(validationErrs),
-		}
-	} else if unmarshalErr, ok := errorhelp.AsType[*json.UnmarshalTypeError](err); ok {
-		message := http.StatusText(http.StatusBadRequest)
-		if unmarshalErr.Field != "" {
-			message = "invalid type for field " + unmarshalErr.Field
-		}
-		return httpjson.Error{
-			Status:  http.StatusBadRequest,
-			Message: message,
-		}
-	} else if _, ok := errorhelp.AsType[*json.SyntaxError](err); ok {
-		return httpjson.Error{
-			Status:  http.StatusBadRequest,
-			Message: http.StatusText(http.StatusBadRequest),
-		}
-	} else if errors.Is(err, httpjson.ErrInvalidContentType) {
-		return httpjson.Error{
-			Status:  http.StatusBadRequest,
-			Message: http.StatusText(http.StatusBadRequest),
-		}
-	} else if errors.Is(err, domain.ErrGenerationTimeout) {
-		return httpjson.Error{
-			Status:  http.StatusRequestTimeout,
-			Message: http.StatusText(http.StatusRequestTimeout),
-		}
-	} else if errors.Is(err, domain.ErrTooManyGenerateRequests) {
-		return httpjson.Error{
-			Status:  http.StatusTooManyRequests,
-			Message: http.StatusText(http.StatusTooManyRequests),
-		}
-	} else if errors.Is(err, domain.ErrSettingAlreadyExists) {
-		return httpjson.Error{
-			Status:  http.StatusConflict,
-			Message: domain.ErrSettingAlreadyExists.Error(),
-		}
-	} else if errors.Is(err, domain.ErrSettingNotFound) {
-		return httpjson.Error{
-			Status:  http.StatusNotFound,
-			Message: domain.ErrSettingNotFound.Error(),
-		}
+	if validationErr := parseValidationError(err); validationErr != nil {
+		return *validationErr
 	}
+
+	if unmarshalErr := parseUnmarshalTypeError(err); unmarshalErr != nil {
+		return *unmarshalErr
+	}
+
+	if syntaxErr := parseSyntaxError(err); syntaxErr != nil {
+		return *syntaxErr
+	}
+
+	if knownErr := checkKnownError(err); knownErr != nil {
+		return *knownErr
+	}
+
 	return httpjson.Error{
 		Status:  http.StatusInternalServerError,
 		Message: http.StatusText(http.StatusInternalServerError),
 	}
+}
+
+func parseValidationError(err error) *httpjson.Error {
+	validationErrs, ok := errorhelp.AsType[validator.ValidationErrors](err)
+	if !ok {
+		return nil
+	}
+
+	return &httpjson.Error{
+		Status:  http.StatusBadRequest,
+		Message: http.StatusText(http.StatusBadRequest),
+		Details: validationErrorsToDetails(validationErrs),
+	}
+}
+
+func parseUnmarshalTypeError(err error) *httpjson.Error {
+	unmarshalTypeErr, ok := errorhelp.AsType[*json.UnmarshalTypeError](err)
+	if !ok {
+		return nil
+	}
+
+	message := http.StatusText(http.StatusBadRequest)
+	if unmarshalTypeErr.Field != "" {
+		message = "invalid type for field " + unmarshalTypeErr.Field
+	}
+
+	return &httpjson.Error{
+		Status:  http.StatusBadRequest,
+		Message: message,
+	}
+}
+
+func parseSyntaxError(err error) *httpjson.Error {
+	_, ok := errorhelp.AsType[*json.SyntaxError](err)
+	if !ok {
+		return nil
+	}
+
+	return &httpjson.Error{
+		Status:  http.StatusBadRequest,
+		Message: http.StatusText(http.StatusBadRequest),
+	}
+}
+
+func checkKnownError(err error) *httpjson.Error {
+	mappings := map[error]httpjson.Error{
+		httpjson.ErrInvalidContentType: {
+			Status:  http.StatusBadRequest,
+			Message: httpjson.ErrInvalidContentType.Error(),
+		},
+		domain.ErrGenerationTimeout: {
+			Status:  http.StatusRequestTimeout,
+			Message: domain.ErrGenerationTimeout.Error(),
+		},
+		domain.ErrTooManyGenerateRequests: {
+			Status:  http.StatusTooManyRequests,
+			Message: domain.ErrTooManyGenerateRequests.Error(),
+		},
+		domain.ErrSettingAlreadyExists: {
+			Status:  http.StatusConflict,
+			Message: domain.ErrSettingAlreadyExists.Error(),
+		},
+		domain.ErrSettingNotFound: {
+			Status:  http.StatusNotFound,
+			Message: domain.ErrSettingNotFound.Error(),
+		},
+	}
+
+	for knownErr, mapping := range mappings {
+		if knownErr != nil && errors.Is(err, knownErr) {
+			return &mapping
+		}
+	}
+
+	return nil
 }
 
 func validationErrorsToDetails(validationErrors validator.ValidationErrors) []httpjson.ErrorDetail {

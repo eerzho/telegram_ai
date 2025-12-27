@@ -65,7 +65,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, errorhelp.WithOP(op, err)
 	}
 
-	if err := u.cache.SetSetting(ctx, setting); err != nil {
+	if err = u.cache.SetSetting(ctx, setting); err != nil {
 		u.logger.WarnContext(ctx, "failed to set setting", slog.Any("error", errorhelp.WithOP(op, err)))
 	}
 

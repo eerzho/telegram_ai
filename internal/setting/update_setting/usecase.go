@@ -50,7 +50,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		return Output{}, errorhelp.WithOP(op, err)
 	}
 
-	if err := u.cache.DelSetting(ctx, input.UserID, input.ChatID); err != nil {
+	if err = u.cache.DelSetting(ctx, input.UserID, input.ChatID); err != nil {
 		u.logger.WarnContext(ctx, "failed to del setting", slog.Any("error", errorhelp.WithOP(op, err)))
 	}
 

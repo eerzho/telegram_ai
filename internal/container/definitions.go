@@ -22,6 +22,7 @@ import (
 	"golang.org/x/sync/semaphore"
 )
 
+//nolint:funlen
 func Definitions() []simpledi.Definition {
 	return []simpledi.Definition{
 		{
