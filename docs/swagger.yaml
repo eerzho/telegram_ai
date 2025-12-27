@@ -32,7 +32,7 @@ definitions:
       message:
         type: string
     type: object
-  internal_improvement_improvement_generate.Input:
+  internal_improvement_generate_improvement.Input:
     properties:
       text:
         minLength: 1
@@ -47,7 +47,7 @@ definitions:
       version:
         type: string
     type: object
-  internal_response_response_generate.Input:
+  internal_response_generate_response.Input:
     properties:
       language:
         maxLength: 2
@@ -55,23 +55,23 @@ definitions:
         type: string
       messages:
         items:
-          $ref: '#/definitions/internal_response_response_generate.InputMessage'
+          $ref: '#/definitions/internal_response_generate_response.InputMessage'
         maxItems: 1000
         minItems: 1
         type: array
       owner:
-        $ref: '#/definitions/internal_response_response_generate.InputUser'
+        $ref: '#/definitions/internal_response_generate_response.InputUser'
     required:
     - language
     - messages
     - owner
     type: object
-  internal_response_response_generate.InputMessage:
+  internal_response_generate_response.InputMessage:
     properties:
       date:
         type: integer
       sender:
-        $ref: '#/definitions/internal_response_response_generate.InputUser'
+        $ref: '#/definitions/internal_response_generate_response.InputUser'
       text:
         minLength: 1
         type: string
@@ -80,7 +80,7 @@ definitions:
     - sender
     - text
     type: object
-  internal_response_response_generate.InputUser:
+  internal_response_generate_response.InputUser:
     properties:
       chat_id:
         type: integer
@@ -91,7 +91,65 @@ definitions:
     - chat_id
     - name
     type: object
-  internal_summary_summary_generate.Input:
+  internal_setting_create_setting.Input:
+    properties:
+      chat_id:
+        type: integer
+      style:
+        maxLength: 500
+        type: string
+      user_id:
+        type: integer
+    required:
+    - chat_id
+    - user_id
+    type: object
+  internal_setting_create_setting.Output:
+    properties:
+      chat_id:
+        type: integer
+      created_at:
+        type: string
+      style:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  internal_setting_get_setting.Output:
+    properties:
+      chat_id:
+        type: integer
+      created_at:
+        type: string
+      style:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  internal_setting_update_setting.Input:
+    properties:
+      style:
+        maxLength: 500
+        type: string
+    type: object
+  internal_setting_update_setting.Output:
+    properties:
+      chat_id:
+        type: integer
+      created_at:
+        type: string
+      style:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  internal_summary_generate_summary.Input:
     properties:
       language:
         maxLength: 2
@@ -99,23 +157,23 @@ definitions:
         type: string
       messages:
         items:
-          $ref: '#/definitions/internal_summary_summary_generate.InputMessage'
+          $ref: '#/definitions/internal_summary_generate_summary.InputMessage'
         maxItems: 1000
         minItems: 1
         type: array
       owner:
-        $ref: '#/definitions/internal_summary_summary_generate.InputUser'
+        $ref: '#/definitions/internal_summary_generate_summary.InputUser'
     required:
     - language
     - messages
     - owner
     type: object
-  internal_summary_summary_generate.InputMessage:
+  internal_summary_generate_summary.InputMessage:
     properties:
       date:
         type: integer
       sender:
-        $ref: '#/definitions/internal_summary_summary_generate.InputUser'
+        $ref: '#/definitions/internal_summary_generate_summary.InputUser'
       text:
         minLength: 1
         type: string
@@ -124,7 +182,7 @@ definitions:
     - sender
     - text
     type: object
-  internal_summary_summary_generate.InputUser:
+  internal_summary_generate_summary.InputUser:
     properties:
       chat_id:
         type: integer
@@ -175,7 +233,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_improvement_improvement_generate.Input'
+          $ref: '#/definitions/internal_improvement_generate_improvement.Input'
       produces:
       - application/json
       - text/event-stream
@@ -205,7 +263,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_response_response_generate.Input'
+          $ref: '#/definitions/internal_response_generate_response.Input'
       produces:
       - application/json
       - text/event-stream
@@ -225,6 +283,132 @@ paths:
       summary: response generate
       tags:
       - response
+  /v1/settings:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_setting_create_setting.Input'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/internal_setting_create_setting.Output'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+      summary: create setting
+      tags:
+      - setting
+  /v1/settings/{user_id}/{chat_id}:
+    delete:
+      parameters:
+      - description: UserID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: ChatID
+        in: path
+        name: chat_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+      summary: delete setting
+      tags:
+      - setting
+    get:
+      parameters:
+      - description: UserID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: ChatID
+        in: path
+        name: chat_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_setting_get_setting.Output'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+      summary: get setting
+      tags:
+      - setting
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_setting_update_setting.Input'
+      - description: UserID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: ChatID
+        in: path
+        name: chat_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_setting_update_setting.Output'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httpjson.Error'
+      summary: update setting
+      tags:
+      - setting
   /v1/summaries/generate:
     post:
       consumes:
@@ -235,7 +419,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/internal_summary_summary_generate.Input'
+          $ref: '#/definitions/internal_summary_generate_summary.Input'
       produces:
       - application/json
       - text/event-stream

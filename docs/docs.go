@@ -66,7 +66,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_improvement_improvement_generate.Input"
+                            "$ref": "#/definitions/internal_improvement_generate_improvement.Input"
                         }
                     }
                 ],
@@ -112,7 +112,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_response_response_generate.Input"
+                            "$ref": "#/definitions/internal_response_generate_response.Input"
                         }
                     }
                 ],
@@ -122,6 +122,197 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/settings": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setting"
+                ],
+                "summary": "create setting",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_setting_create_setting.Input"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/internal_setting_create_setting.Output"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/settings/{user_id}/{chat_id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setting"
+                ],
+                "summary": "get setting",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "UserID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ChatID",
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_setting_get_setting.Output"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setting"
+                ],
+                "summary": "update setting",
+                "parameters": [
+                    {
+                        "description": "body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_setting_update_setting.Input"
+                        }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "UserID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ChatID",
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_setting_update_setting.Output"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httpjson.Error"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "setting"
+                ],
+                "summary": "delete setting",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "UserID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ChatID",
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -158,7 +349,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/internal_summary_summary_generate.Input"
+                            "$ref": "#/definitions/internal_summary_generate_summary.Input"
                         }
                     }
                 ],
@@ -235,7 +426,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_improvement_improvement_generate.Input": {
+        "internal_improvement_generate_improvement.Input": {
             "type": "object",
             "required": [
                 "text"
@@ -258,7 +449,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_response_response_generate.Input": {
+        "internal_response_generate_response.Input": {
             "type": "object",
             "required": [
                 "language",
@@ -276,15 +467,15 @@ const docTemplate = `{
                     "maxItems": 1000,
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/internal_response_response_generate.InputMessage"
+                        "$ref": "#/definitions/internal_response_generate_response.InputMessage"
                     }
                 },
                 "owner": {
-                    "$ref": "#/definitions/internal_response_response_generate.InputUser"
+                    "$ref": "#/definitions/internal_response_generate_response.InputUser"
                 }
             }
         },
-        "internal_response_response_generate.InputMessage": {
+        "internal_response_generate_response.InputMessage": {
             "type": "object",
             "required": [
                 "date",
@@ -296,7 +487,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "sender": {
-                    "$ref": "#/definitions/internal_response_response_generate.InputUser"
+                    "$ref": "#/definitions/internal_response_generate_response.InputUser"
                 },
                 "text": {
                     "type": "string",
@@ -304,7 +495,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_response_response_generate.InputUser": {
+        "internal_response_generate_response.InputUser": {
             "type": "object",
             "required": [
                 "chat_id",
@@ -320,7 +511,95 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_summary_summary_generate.Input": {
+        "internal_setting_create_setting.Input": {
+            "type": "object",
+            "required": [
+                "chat_id",
+                "user_id"
+            ],
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "style": {
+                    "type": "string",
+                    "maxLength": 500
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_setting_create_setting.Output": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "style": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_setting_get_setting.Output": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "style": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_setting_update_setting.Input": {
+            "type": "object",
+            "properties": {
+                "style": {
+                    "type": "string",
+                    "maxLength": 500
+                }
+            }
+        },
+        "internal_setting_update_setting.Output": {
+            "type": "object",
+            "properties": {
+                "chat_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "style": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "internal_summary_generate_summary.Input": {
             "type": "object",
             "required": [
                 "language",
@@ -338,15 +617,15 @@ const docTemplate = `{
                     "maxItems": 1000,
                     "minItems": 1,
                     "items": {
-                        "$ref": "#/definitions/internal_summary_summary_generate.InputMessage"
+                        "$ref": "#/definitions/internal_summary_generate_summary.InputMessage"
                     }
                 },
                 "owner": {
-                    "$ref": "#/definitions/internal_summary_summary_generate.InputUser"
+                    "$ref": "#/definitions/internal_summary_generate_summary.InputUser"
                 }
             }
         },
-        "internal_summary_summary_generate.InputMessage": {
+        "internal_summary_generate_summary.InputMessage": {
             "type": "object",
             "required": [
                 "date",
@@ -358,7 +637,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "sender": {
-                    "$ref": "#/definitions/internal_summary_summary_generate.InputUser"
+                    "$ref": "#/definitions/internal_summary_generate_summary.InputUser"
                 },
                 "text": {
                     "type": "string",
@@ -366,7 +645,7 @@ const docTemplate = `{
                 }
             }
         },
-        "internal_summary_summary_generate.InputUser": {
+        "internal_summary_generate_summary.InputUser": {
             "type": "object",
             "required": [
                 "chat_id",

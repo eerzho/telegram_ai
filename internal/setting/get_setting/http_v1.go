@@ -10,6 +10,20 @@ import (
 	"github.com/eerzho/telegram_ai/internal/domain"
 )
 
+// HTTPv1 godoc
+//
+// @tags setting
+// @summary get setting
+//
+// @param user_id path int true "UserID"
+// @param chat_id path int true "ChatID"
+//
+// @produce json
+// @success 200 {object} Output
+// @failure 400 {object} httpjson.Error
+// @failure 500 {object} httpjson.Error
+//
+// @router /v1/settings/{user_id}/{chat_id} [get].
 func HTTPv1(usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		const op = "get_setting.HTTPv1"
