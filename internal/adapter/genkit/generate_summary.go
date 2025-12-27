@@ -16,12 +16,13 @@ import (
 
 func (c *Client) GenerateSummary(
 	ctx context.Context,
+	language string,
 	dialog domain.Dialog,
 	onChunk func(chunk string) error,
 ) error {
 	const op = "genkit.Client.GenerateSummary"
 
-	promptName, data := c.summaryData(dialog)
+	promptName, data := c.summaryData(language, dialog)
 
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
@@ -45,7 +46,7 @@ func (c *Client) GenerateSummary(
 	return nil
 }
 
-func (c *Client) summaryData(dialog domain.Dialog) (string, map[string]any) {
+func (c *Client) summaryData(language string, dialog domain.Dialog) (string, map[string]any) {
 	slices.SortFunc(dialog.Messages, func(a, b domain.Message) int {
 		return cmp.Compare(a.Date, b.Date)
 	})
@@ -62,7 +63,7 @@ func (c *Client) summaryData(dialog domain.Dialog) (string, map[string]any) {
 
 	promptName := "summary"
 	data := map[string]any{
-		"language":          dialog.Language,
+		"language":          language,
 		"author_name":       dialog.Owner.Name,
 		"current_timestamp": time.Now().Format(time.DateTime),
 		"conversation":      conversationBuilder.String(),

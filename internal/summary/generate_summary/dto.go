@@ -28,7 +28,6 @@ func (i Input) ToDialog() domain.Dialog {
 		messages = append(messages, msg.ToMessage())
 	}
 	return domain.Dialog{
-		Language: i.Language,
 		Owner:    i.Owner.ToUser(),
 		Messages: messages,
 	}

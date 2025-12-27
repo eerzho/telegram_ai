@@ -1,7 +1,6 @@
 package domain
 
 type Dialog struct {
-	Language string
 	Owner    User
 	Messages []Message
 }

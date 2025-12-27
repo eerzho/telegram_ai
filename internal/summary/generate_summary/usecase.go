@@ -18,6 +18,7 @@ const (
 type generator interface {
 	GenerateSummary(
 		ctx context.Context,
+		language string,
 		dialog domain.Dialog,
 		onChunk func(chunk string) error,
 	) error
@@ -63,7 +64,7 @@ func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
 		genCtx, genCancel := context.WithTimeoutCause(ctx, generationTimeout*time.Second, domain.ErrGenerationTimeout)
 		defer genCancel()
 
-		err := u.generator.GenerateSummary(genCtx, input.ToDialog(),
+		err := u.generator.GenerateSummary(genCtx, input.Language, input.ToDialog(),
 			func(chunk string) error {
 				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})
 				if err != nil {
