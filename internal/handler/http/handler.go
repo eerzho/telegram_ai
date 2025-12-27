@@ -15,6 +15,7 @@ import (
 	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
 	createsetting "github.com/eerzho/telegram_ai/internal/setting/create_setting"
 	deletesetting "github.com/eerzho/telegram_ai/internal/setting/delete_setting"
+	getsetting "github.com/eerzho/telegram_ai/internal/setting/get_setting"
 	updatesetting "github.com/eerzho/telegram_ai/internal/setting/update_setting"
 	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/eerzho/telegram_ai/pkg/cors"
@@ -90,6 +91,13 @@ func Handler() http.Handler {
 		"PUT /v1/settings/{user_id}/{chat_id}",
 		httpserver.Wrap(updatesetting.HTTPv1(
 			simpledi.Get[*updatesetting.Usecase]("updateSettingUsecase"),
+		), errorHandler),
+	)
+
+	mux.Handle(
+		"GET /v1/settings/{user_id}/{chat_id}",
+		httpserver.Wrap(getsetting.HTTPv1(
+			simpledi.Get[*getsetting.Usecase]("getSettingUsecase"),
 		), errorHandler),
 	)
 

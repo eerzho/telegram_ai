@@ -15,6 +15,7 @@ import (
 	generateresponse "github.com/eerzho/telegram_ai/internal/response/generate_response"
 	createsetting "github.com/eerzho/telegram_ai/internal/setting/create_setting"
 	deletesetting "github.com/eerzho/telegram_ai/internal/setting/delete_setting"
+	getsetting "github.com/eerzho/telegram_ai/internal/setting/get_setting"
 	updatesetting "github.com/eerzho/telegram_ai/internal/setting/update_setting"
 	generatesummary "github.com/eerzho/telegram_ai/internal/summary/generate_summary"
 	"github.com/go-playground/validator/v10"
@@ -164,6 +165,22 @@ func Definitions() []simpledi.Definition {
 				db := simpledi.Get[*postgres.DB]("postgres")
 				client := simpledi.Get[*valkey.Client]("valkey")
 				return updatesetting.NewUsecase(
+					logger,
+					validate,
+					db,
+					client,
+				)
+			},
+		},
+		{
+			ID:   "getSettingUsecase",
+			Deps: []string{"logger", "validate", "postgres", "valkey"},
+			New: func() any {
+				logger := simpledi.Get[*slog.Logger]("logger")
+				validate := simpledi.Get[*validator.Validate]("validate")
+				db := simpledi.Get[*postgres.DB]("postgres")
+				client := simpledi.Get[*valkey.Client]("valkey")
+				return getsetting.NewUsecase(
 					logger,
 					validate,
 					db,
