@@ -22,7 +22,8 @@ func (c *Client) GenerateSummary(
 ) error {
 	const op = "genkit.Client.GenerateSummary"
 
-	promptName, data := c.summaryData(language, dialog)
+	promptName := "generate_summary"
+	data := c.summaryData(language, dialog)
 
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
@@ -46,7 +47,7 @@ func (c *Client) GenerateSummary(
 	return nil
 }
 
-func (c *Client) summaryData(language string, dialog domain.Dialog) (string, map[string]any) {
+func (c *Client) summaryData(language string, dialog domain.Dialog) map[string]any {
 	slices.SortFunc(dialog.Messages, func(a, b domain.Message) int {
 		return cmp.Compare(a.Date, b.Date)
 	})
@@ -61,7 +62,6 @@ func (c *Client) summaryData(language string, dialog domain.Dialog) (string, map
 		))
 	}
 
-	promptName := "summary"
 	data := map[string]any{
 		"language":          language,
 		"author_name":       dialog.Owner.Name,
@@ -69,5 +69,5 @@ func (c *Client) summaryData(language string, dialog domain.Dialog) (string, map
 		"conversation":      conversationBuilder.String(),
 	}
 
-	return promptName, data
+	return data
 }

@@ -15,7 +15,8 @@ func (c *Client) GenerateImprovement(
 ) error {
 	const op = "genkit.Client.GenerateImprovement"
 
-	promptName, data := c.improvementData(text)
+	promptName := "generate_improvement"
+	data := map[string]any{"text": text}
 
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
@@ -37,10 +38,4 @@ func (c *Client) GenerateImprovement(
 	}
 
 	return nil
-}
-
-func (c *Client) improvementData(text string) (string, map[string]any) {
-	promptName := "improvement"
-	data := map[string]any{"text": text}
-	return promptName, data
 }
