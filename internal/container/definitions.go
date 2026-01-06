@@ -95,7 +95,7 @@ func Definitions() []simpledi.Definition {
 			},
 		},
 		{
-			ID:   "responseGenerateUsecase",
+			ID:   "generateResponseUsecase",
 			Deps: []string{"generatorSem", "validate", "genkit"},
 			New: func() any {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
@@ -105,7 +105,7 @@ func Definitions() []simpledi.Definition {
 			},
 		},
 		{
-			ID:   "summaryGenerateUsecase",
+			ID:   "generateSummaryUsecase",
 			Deps: []string{"generatorSem", "validate", "genkit"},
 			New: func() any {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
@@ -119,7 +119,7 @@ func Definitions() []simpledi.Definition {
 			},
 		},
 		{
-			ID:   "improvementGenerateUsecase",
+			ID:   "generateImprovementUsecase",
 			Deps: []string{"generatorSem", "validate", "genkit"},
 			New: func() any {
 				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")

@@ -50,10 +50,9 @@ func Handler() http.Handler {
 	)
 
 	mux.Handle(
-		"POST /v1/responses/generate",
+		"POST /v1/responses/{user_id}/{chat_id}/generate",
 		httpserver.Wrap(generateresponse.HTTPv1(
-			logger,
-			simpledi.Get[*generateresponse.Usecase]("responseGenerateUsecase"),
+			simpledi.Get[*generateresponse.Usecase]("generateResponseUsecase"),
 		), errorHandler),
 	)
 
@@ -61,7 +60,7 @@ func Handler() http.Handler {
 		"POST /v1/summaries/generate",
 		httpserver.Wrap(generatesummary.HTTPv1(
 			logger,
-			simpledi.Get[*generatesummary.Usecase]("summaryGenerateUsecase"),
+			simpledi.Get[*generatesummary.Usecase]("generateSummaryUsecase"),
 		), errorHandler),
 	)
 
@@ -69,7 +68,7 @@ func Handler() http.Handler {
 		"POST /v1/improvements/generate",
 		httpserver.Wrap(generateimprovement.HTTPv1(
 			logger,
-			simpledi.Get[*generateimprovement.Usecase]("improvementGenerateUsecase"),
+			simpledi.Get[*generateimprovement.Usecase]("generateImprovementUsecase"),
 		), errorHandler),
 	)
 
