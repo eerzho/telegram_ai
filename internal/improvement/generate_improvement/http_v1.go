@@ -26,7 +26,7 @@ import (
 // @router /v1/improvements/generate [post].
 func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		const op = "improvement_generate.HTTPv1"
+		const op = "generate_improvement.HTTPv1"
 
 		ctx := r.Context()
 		defer r.Body.Close()
