@@ -26,7 +26,7 @@ import (
 // @router /v1/summaries/generate [post].
 func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		const op = "summary_generate.HTTPv1"
+		const op = "generate_summary.HTTPv1"
 
 		ctx := r.Context()
 		defer r.Body.Close()

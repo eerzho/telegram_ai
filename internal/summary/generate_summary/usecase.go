@@ -43,7 +43,7 @@ func NewUsecase(
 }
 
 func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
-	const op = "summary_generate.Usecase.Execute"
+	const op = "generate_summary.Usecase.Execute"
 
 	if err := u.validate.Struct(input); err != nil {
 		return Output{}, errorhelp.WithOP(op, err)
