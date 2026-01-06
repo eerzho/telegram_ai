@@ -1,13 +1,13 @@
 package generateresponse
 
 import (
-	"log/slog"
 	"net/http"
+	"strconv"
 
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
 	httpjson "github.com/eerzho/goiler/pkg/http_json"
 	httpserver "github.com/eerzho/goiler/pkg/http_server"
-	"github.com/eerzho/telegram_ai/pkg/sse"
+	"github.com/eerzho/telegram_ai/internal/domain"
 )
 
 // HTTPv1 godoc
@@ -17,16 +17,18 @@ import (
 //
 // @accept json
 // @param request body Input true "body"
+// @param user_id path int true "UserID"
+// @param chat_id path int true "ChatID"
 //
-// @produce json,event-stream
-// @success 200 {object} sse.Event
+// @produce json
+// @success 200 {object} Output
 // @failure 400 {object} httpjson.Error
 // @failure 500 {object} httpjson.Error
 //
-// @router /v1/responses/generate [post].
-func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
+// @router /v1/responses/{user_id}/{chat_id}/generate [post].
+func HTTPv1(usecase *Usecase) httpserver.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		const op = "response_generate.HTTPv1"
+		const op = "generate_response.HTTPv1"
 
 		ctx := r.Context()
 		defer r.Body.Close()
@@ -35,16 +37,21 @@ func HTTPv1(logger *slog.Logger, usecase *Usecase) httpserver.HandlerFunc {
 		if err != nil {
 			return errorhelp.WithOP(op, err)
 		}
+		input.UserID, err = strconv.ParseInt(r.PathValue("user_id"), 10, 64)
+		if err != nil {
+			return errorhelp.WithOP(op, domain.ErrSettingNotFound)
+		}
+		input.ChatID, err = strconv.ParseInt(r.PathValue("chat_id"), 10, 64)
+		if err != nil {
+			return errorhelp.WithOP(op, domain.ErrSettingNotFound)
+		}
 
 		output, err := usecase.Execute(ctx, input)
 		if err != nil {
 			return errorhelp.WithOP(op, err)
 		}
 
-		if err = sse.Stream(ctx, w, &output); err != nil {
-			logger.ErrorContext(ctx, "stream error", slog.Any("error", errorhelp.WithOP(op, err)))
-		}
-
+		httpjson.Encode(w, http.StatusOK, output)
 		return nil
 	}
 }

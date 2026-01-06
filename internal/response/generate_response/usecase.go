@@ -2,92 +2,80 @@ package generateresponse
 
 import (
 	"context"
-	"encoding/json"
-	"time"
+	"log/slog"
 
 	errorhelp "github.com/eerzho/goiler/pkg/error_help"
 	"github.com/eerzho/telegram_ai/internal/domain"
 	"github.com/go-playground/validator/v10"
-	"golang.org/x/sync/semaphore"
 )
 
-const (
-	generationTimeout = 20 // second
-)
+type storage interface {
+	GetSettingByUserIDAndChatID(ctx context.Context, userID, chatID int64) (domain.Setting, error)
+}
+
+type cache interface {
+	GetSetting(ctx context.Context, userID, chatID int64) (domain.Setting, error)
+}
 
 type generator interface {
-	GenerateResponse(
-		ctx context.Context,
-		dialog domain.Dialog,
-		onChunk func(chunk string) error,
-	) error
+	GenerateResponse(ctx context.Context, userStyle string, dialog domain.Dialog) (domain.Response, error)
 }
 
 type Usecase struct {
-	sem       *semaphore.Weighted
+	logger    *slog.Logger
 	validate  *validator.Validate
+	storage   storage
+	cache     cache
 	generator generator
 }
 
 func NewUsecase(
-	sem *semaphore.Weighted,
+	logger *slog.Logger,
 	validate *validator.Validate,
+	storage storage,
+	cache cache,
 	generator generator,
 ) *Usecase {
 	return &Usecase{
-		sem:       sem,
+		logger:    logger,
 		validate:  validate,
+		storage:   storage,
+		cache:     cache,
 		generator: generator,
 	}
 }
 
 func (u *Usecase) Execute(ctx context.Context, input Input) (Output, error) {
-	const op = "response_generate.Usecase.Execute"
+	const op = "generate_response.Usecase.Execute"
 
 	if err := u.validate.Struct(input); err != nil {
 		return Output{}, errorhelp.WithOP(op, err)
 	}
 
-	ok := u.sem.TryAcquire(1)
-	if !ok {
-		return Output{}, errorhelp.WithOP(op, domain.ErrTooManyGenerateRequests)
+	userStyle := u.getUserStyle(ctx, input.UserID, input.ChatID)
+
+	response, err := u.generator.GenerateResponse(ctx, userStyle, input.ToDialog())
+	if err != nil {
+		return Output{}, errorhelp.WithOP(op, err)
 	}
 
-	textChan := make(chan string)
-	errChan := make(chan error)
-	go func() {
-		defer u.sem.Release(1)
-		defer close(textChan)
-		defer close(errChan)
+	return Output{Response: response}, nil
+}
 
-		genCtx, cancel := context.WithTimeoutCause(ctx, generationTimeout*time.Second, domain.ErrGenerationTimeout)
-		defer cancel()
+func (u *Usecase) getUserStyle(ctx context.Context, userID, chatID int64) string {
+	const op = "generate_response.Usecase.getUserStyle"
 
-		err := u.generator.GenerateResponse(genCtx, input.ToDialog(),
-			func(chunk string) error {
-				jsonChunk, err := json.Marshal(map[string]string{"text": chunk})
-				if err != nil {
-					return errorhelp.WithOP(op, err)
-				}
-				select {
-				case <-genCtx.Done():
-					return genCtx.Err()
-				case textChan <- string(jsonChunk):
-					return nil
-				}
-			},
-		)
-		if err != nil {
-			select {
-			case <-genCtx.Done():
-			case errChan <- errorhelp.WithOP(op, err):
-			}
-			return
-		}
-	}()
+	setting, err := u.cache.GetSetting(ctx, userID, chatID)
+	if err == nil {
+		return setting.Style
+	}
+	u.logger.InfoContext(ctx, "failed to get setting from cache", slog.Any("error", errorhelp.WithOP(op, err)))
 
-	return Output{
-		TextChan: textChan,
-		ErrChan:  errChan,
-	}, nil
+	setting, err = u.storage.GetSettingByUserIDAndChatID(ctx, userID, chatID)
+	if err == nil {
+		return setting.Style
+	}
+	u.logger.InfoContext(ctx, "failed to get setting from storage", slog.Any("error", errorhelp.WithOP(op, err)))
+
+	return ""
 }

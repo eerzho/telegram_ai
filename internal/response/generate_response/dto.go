@@ -2,11 +2,11 @@ package generateresponse
 
 import (
 	"github.com/eerzho/telegram_ai/internal/domain"
-	"github.com/eerzho/telegram_ai/pkg/sse"
 )
 
 type Input struct {
-	Language string         `json:"language" validate:"required,min=2,max=2"`
+	UserID   int64          `json:"user_id" validate:"required" swaggerignore:"true"`
+	ChatID   int64          `json:"chat_id" validate:"required" swaggerignore:"true"`
 	Owner    InputUser      `json:"owner"    validate:"required"`
 	Messages []InputMessage `json:"messages" validate:"required,min=1,max=1000,dive"`
 }
@@ -49,24 +49,5 @@ func (i InputMessage) ToMessage() domain.Message {
 }
 
 type Output struct {
-	TextChan <-chan string
-	ErrChan  <-chan error
-}
-
-func (o *Output) Next() (sse.Event, bool) {
-	select {
-	case text, ok := <-o.TextChan:
-		if !ok {
-			return sse.Event{Name: "stop"}, true
-		}
-		return sse.Event{Name: "append", Data: text}, false
-	case err, ok := <-o.ErrChan:
-		if !ok {
-			return sse.Event{Name: "stop"}, true
-		}
-		if err != nil {
-			return sse.Event{Name: "stop_with_error", Data: "{ \"text\": \"Please try again later.\" }"}, true
-		}
-		return sse.Event{}, true
-	}
+	domain.Response
 }
