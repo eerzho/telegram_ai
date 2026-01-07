@@ -96,12 +96,20 @@ func Definitions() []simpledi.Definition {
 		},
 		{
 			ID:   "generateResponseUsecase",
-			Deps: []string{"generatorSem", "validate", "genkit"},
+			Deps: []string{"logger", "validate", "postgres", "valkey", "genkit"},
 			New: func() any {
-				generatorSem := simpledi.Get[*semaphore.Weighted]("generatorSem")
+				logger := simpledi.Get[*slog.Logger]("logger")
 				validate := simpledi.Get[*validator.Validate]("validate")
-				client := simpledi.Get[*genkit.Client]("genkit")
-				return generateresponse.NewUsecase(generatorSem, validate, client)
+				db := simpledi.Get[*postgres.DB]("postgres")
+				valkeyClient := simpledi.Get[*valkey.Client]("valkey")
+				genkitClient := simpledi.Get[*genkit.Client]("genkit")
+				return generateresponse.NewUsecase(
+					logger,
+					validate,
+					db,
+					valkeyClient,
+					genkitClient,
+				)
 			},
 		},
 		{
