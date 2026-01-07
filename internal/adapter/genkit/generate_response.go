@@ -24,24 +24,24 @@ type decision struct {
 
 func (d decision) toResponse() (domain.Response, error) {
 	switch d.ResponseType {
-	case "message":
+	case string(domain.ResponseTypeMessage):
 		return domain.Response{
 			Type:    domain.ResponseTypeMessage,
 			Message: d.Message,
 		}, nil
-	case "reaction":
+	case string(domain.ResponseTypeReaction):
 		switch d.ReactionType {
-		case "like":
+		case string(domain.ReactionTypeLike):
 			return domain.Response{
 				Type:         domain.ResponseTypeReaction,
 				ReactionType: domain.ReactionTypeLike,
 			}, nil
-		case "ok":
+		case string(domain.ReactionTypeOK):
 			return domain.Response{
 				Type:         domain.ResponseTypeReaction,
 				ReactionType: domain.ReactionTypeOK,
 			}, nil
-		case "nice":
+		case string(domain.ReactionTypeNice):
 			return domain.Response{
 				Type:         domain.ResponseTypeReaction,
 				ReactionType: domain.ReactionTypeNice,
@@ -49,7 +49,7 @@ func (d decision) toResponse() (domain.Response, error) {
 		default:
 			return domain.Response{}, domain.ErrInvalidReactionType
 		}
-	case "skip":
+	case string(domain.ResponseTypeSkip):
 		return domain.Response{
 			Type: domain.ResponseTypeSkip,
 		}, nil
