@@ -11,9 +11,9 @@ const (
 type ReactionType string
 
 const (
-	ReactionTypeLike ReactionType = "like"
-	ReactionTypeOK   ReactionType = "ok"
-	ReactionTypeNice ReactionType = "nice"
+	ReactionTypeOK      ReactionType = "ok"
+	ReactionTypeLike    ReactionType = "like"
+	ReactionTypeDislike ReactionType = "dislike"
 )
 
 type Response struct {

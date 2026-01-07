@@ -31,20 +31,20 @@ func (d decision) toResponse() (domain.Response, error) {
 		}, nil
 	case string(domain.ResponseTypeReaction):
 		switch d.ReactionType {
-		case string(domain.ReactionTypeLike):
-			return domain.Response{
-				Type:         domain.ResponseTypeReaction,
-				ReactionType: domain.ReactionTypeLike,
-			}, nil
 		case string(domain.ReactionTypeOK):
 			return domain.Response{
 				Type:         domain.ResponseTypeReaction,
 				ReactionType: domain.ReactionTypeOK,
 			}, nil
-		case string(domain.ReactionTypeNice):
+		case string(domain.ReactionTypeLike):
 			return domain.Response{
 				Type:         domain.ResponseTypeReaction,
-				ReactionType: domain.ReactionTypeNice,
+				ReactionType: domain.ReactionTypeLike,
+			}, nil
+		case string(domain.ReactionTypeDislike):
+			return domain.Response{
+				Type:         domain.ResponseTypeReaction,
+				ReactionType: domain.ReactionTypeDislike,
 			}, nil
 		default:
 			return domain.Response{}, domain.ErrInvalidReactionType
@@ -58,7 +58,11 @@ func (d decision) toResponse() (domain.Response, error) {
 	}
 }
 
-func (c *Client) GenerateResponse(ctx context.Context, userStyle string, dialog domain.Dialog) (domain.Response, error) {
+func (c *Client) GenerateResponse(
+	ctx context.Context,
+	userStyle string,
+	dialog domain.Dialog,
+) (domain.Response, error) {
 	const op = "genkit.Client.GenerateResponse"
 
 	promptName := "generate_response"
@@ -75,7 +79,7 @@ func (c *Client) GenerateResponse(ctx context.Context, userStyle string, dialog 
 	}
 
 	var d decision
-	if err := json.Unmarshal([]byte(result.Text()), &d); err != nil {
+	if err = json.Unmarshal([]byte(result.Text()), &d); err != nil {
 		return domain.Response{}, errorhelp.WithOP(op, err)
 	}
 
