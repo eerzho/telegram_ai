@@ -5,8 +5,8 @@ import (
 )
 
 type Input struct {
-	UserID   int64          `json:"user_id" validate:"required" swaggerignore:"true"`
-	ChatID   int64          `json:"chat_id" validate:"required" swaggerignore:"true"`
+	UserID   int64          `json:"user_id"  validate:"required"                     swaggerignore:"true"`
+	ChatID   int64          `json:"chat_id"  validate:"required"                     swaggerignore:"true"`
 	Owner    InputUser      `json:"owner"    validate:"required"`
 	Messages []InputMessage `json:"messages" validate:"required,min=1,max=1000,dive"`
 }

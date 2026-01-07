@@ -92,14 +92,13 @@ const docTemplate = `{
                 }
             }
         },
-        "/v1/responses/generate": {
+        "/v1/responses/{user_id}/{chat_id}/generate": {
             "post": {
                 "consumes": [
                     "application/json"
                 ],
                 "produces": [
-                    "application/json",
-                    "text/event-stream"
+                    "application/json"
                 ],
                 "tags": [
                     "response"
@@ -114,13 +113,27 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/internal_response_generate_response.Input"
                         }
+                    },
+                    {
+                        "type": "integer",
+                        "description": "UserID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ChatID",
+                        "name": "chat_id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event"
+                            "$ref": "#/definitions/internal_response_generate_response.Output"
                         }
                     },
                     "400": {
@@ -377,6 +390,32 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "github_com_eerzho_telegram_ai_internal_domain.ReactionType": {
+            "type": "string",
+            "enum": [
+                "ok",
+                "like",
+                "dislike"
+            ],
+            "x-enum-varnames": [
+                "ReactionTypeOK",
+                "ReactionTypeLike",
+                "ReactionTypeDislike"
+            ]
+        },
+        "github_com_eerzho_telegram_ai_internal_domain.ResponseType": {
+            "type": "string",
+            "enum": [
+                "message",
+                "reaction",
+                "skip"
+            ],
+            "x-enum-varnames": [
+                "ResponseTypeMessage",
+                "ResponseTypeReaction",
+                "ResponseTypeSkip"
+            ]
+        },
         "github_com_eerzho_telegram_ai_pkg_sse.Event": {
             "type": "object",
             "properties": {
@@ -452,16 +491,10 @@ const docTemplate = `{
         "internal_response_generate_response.Input": {
             "type": "object",
             "required": [
-                "language",
                 "messages",
                 "owner"
             ],
             "properties": {
-                "language": {
-                    "type": "string",
-                    "maxLength": 2,
-                    "minLength": 2
-                },
                 "messages": {
                     "type": "array",
                     "maxItems": 1000,
@@ -508,6 +541,20 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "minLength": 1
+                }
+            }
+        },
+        "internal_response_generate_response.Output": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "reaction_type": {
+                    "$ref": "#/definitions/github_com_eerzho_telegram_ai_internal_domain.ReactionType"
+                },
+                "type": {
+                    "$ref": "#/definitions/github_com_eerzho_telegram_ai_internal_domain.ResponseType"
                 }
             }
         },

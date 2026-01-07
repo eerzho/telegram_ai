@@ -1,5 +1,25 @@
 basePath: /
 definitions:
+  github_com_eerzho_telegram_ai_internal_domain.ReactionType:
+    enum:
+    - ok
+    - like
+    - dislike
+    type: string
+    x-enum-varnames:
+    - ReactionTypeOK
+    - ReactionTypeLike
+    - ReactionTypeDislike
+  github_com_eerzho_telegram_ai_internal_domain.ResponseType:
+    enum:
+    - message
+    - reaction
+    - skip
+    type: string
+    x-enum-varnames:
+    - ResponseTypeMessage
+    - ResponseTypeReaction
+    - ResponseTypeSkip
   github_com_eerzho_telegram_ai_pkg_sse.Event:
     properties:
       data:
@@ -49,10 +69,6 @@ definitions:
     type: object
   internal_response_generate_response.Input:
     properties:
-      language:
-        maxLength: 2
-        minLength: 2
-        type: string
       messages:
         items:
           $ref: '#/definitions/internal_response_generate_response.InputMessage'
@@ -62,7 +78,6 @@ definitions:
       owner:
         $ref: '#/definitions/internal_response_generate_response.InputUser'
     required:
-    - language
     - messages
     - owner
     type: object
@@ -90,6 +105,15 @@ definitions:
     required:
     - chat_id
     - name
+    type: object
+  internal_response_generate_response.Output:
+    properties:
+      message:
+        type: string
+      reaction_type:
+        $ref: '#/definitions/github_com_eerzho_telegram_ai_internal_domain.ReactionType'
+      type:
+        $ref: '#/definitions/github_com_eerzho_telegram_ai_internal_domain.ResponseType'
     type: object
   internal_setting_create_setting.Input:
     properties:
@@ -253,7 +277,7 @@ paths:
       summary: improvement generate
       tags:
       - improvement
-  /v1/responses/generate:
+  /v1/responses/{user_id}/{chat_id}/generate:
     post:
       consumes:
       - application/json
@@ -264,14 +288,23 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/internal_response_generate_response.Input'
+      - description: UserID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: ChatID
+        in: path
+        name: chat_id
+        required: true
+        type: integer
       produces:
       - application/json
-      - text/event-stream
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_eerzho_telegram_ai_pkg_sse.Event'
+            $ref: '#/definitions/internal_response_generate_response.Output'
         "400":
           description: Bad Request
           schema:
