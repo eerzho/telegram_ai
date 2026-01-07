@@ -106,15 +106,6 @@ const docTemplate = `{
                 "summary": "response generate",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_response_generate_response.Input"
-                        }
-                    },
-                    {
                         "type": "integer",
                         "description": "UserID",
                         "name": "user_id",
@@ -127,6 +118,15 @@ const docTemplate = `{
                         "name": "chat_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_response_generate_response.Input"
+                        }
                     }
                 ],
                 "responses": {
@@ -255,15 +255,6 @@ const docTemplate = `{
                 "summary": "update setting",
                 "parameters": [
                     {
-                        "description": "body",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/internal_setting_update_setting.Input"
-                        }
-                    },
-                    {
                         "type": "integer",
                         "description": "UserID",
                         "name": "user_id",
@@ -276,6 +267,15 @@ const docTemplate = `{
                         "name": "chat_id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/internal_setting_update_setting.Input"
+                        }
                     }
                 ],
                 "responses": {

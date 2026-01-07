@@ -16,9 +16,9 @@ import (
 // @summary update setting
 //
 // @accept json
-// @param request body Input true "body"
 // @param user_id path int true "UserID"
 // @param chat_id path int true "ChatID"
+// @param request body Input true "body"
 //
 // @produce json
 // @success 200 {object} Output

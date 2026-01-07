@@ -282,12 +282,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_response_generate_response.Input'
       - description: UserID
         in: path
         name: user_id
@@ -298,6 +292,12 @@ paths:
         name: chat_id
         required: true
         type: integer
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_response_generate_response.Input'
       produces:
       - application/json
       responses:
@@ -408,12 +408,6 @@ paths:
       consumes:
       - application/json
       parameters:
-      - description: body
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/internal_setting_update_setting.Input'
       - description: UserID
         in: path
         name: user_id
@@ -424,6 +418,12 @@ paths:
         name: chat_id
         required: true
         type: integer
+      - description: body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/internal_setting_update_setting.Input'
       produces:
       - application/json
       responses:
