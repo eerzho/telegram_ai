@@ -9,4 +9,6 @@ var (
 	ErrGenerationTimeout       = errors.New("generation timeout")
 	ErrSettingAlreadyExists    = errors.New("setting already exists")
 	ErrSettingNotFound         = errors.New("setting not found")
+	ErrInvalidResponseType     = errors.New("invalid response type")
+	ErrInvalidReactionType     = errors.New("invalid reaction type")
 )
