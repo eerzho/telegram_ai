@@ -3,6 +3,7 @@ package genkit
 import (
 	"cmp"
 	"context"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -14,68 +15,104 @@ import (
 	"github.com/firebase/genkit/go/genkit"
 )
 
-func (c *Client) GenerateResponse(
-	ctx context.Context,
-	dialog domain.Dialog,
-	onChunk func(chunk string) error,
-) error {
+type decision struct {
+	ResponseType string `json:"response_type"`
+	Message      string `json:"message"`
+	ReactionType string `json:"reaction_type"`
+	Reasoning    string `json:"reasoning"`
+}
+
+func (d decision) toResponse() (domain.Response, error) {
+	switch d.ResponseType {
+	case "message":
+		return domain.Response{
+			Type:    domain.ResponseTypeMessage,
+			Message: d.Message,
+		}, nil
+	case "reaction":
+		switch d.ReactionType {
+		case "like":
+			return domain.Response{
+				Type:         domain.ResponseTypeReaction,
+				ReactionType: domain.ReactionTypeLike,
+			}, nil
+		case "ok":
+			return domain.Response{
+				Type:         domain.ResponseTypeReaction,
+				ReactionType: domain.ReactionTypeOK,
+			}, nil
+		case "nice":
+			return domain.Response{
+				Type:         domain.ResponseTypeReaction,
+				ReactionType: domain.ReactionTypeNice,
+			}, nil
+		default:
+			return domain.Response{}, domain.ErrInvalidReactionType
+		}
+	case "skip":
+		return domain.Response{
+			Type: domain.ResponseTypeSkip,
+		}, nil
+	default:
+		return domain.Response{}, domain.ErrInvalidReactionType
+	}
+}
+
+func (c *Client) GenerateResponse(ctx context.Context, userStyle string, dialog domain.Dialog) (domain.Response, error) {
 	const op = "genkit.Client.GenerateResponse"
 
-	promptName, data := c.responseData(dialog)
+	promptName := "generate_response"
+	data := c.responseData(userStyle, dialog)
 
 	prompt := genkit.LookupPrompt(c.genkit, promptName)
 	if prompt == nil {
-		return errorhelp.WithOP(op, ErrPromptNotFound)
+		return domain.Response{}, errorhelp.WithOP(op, ErrPromptNotFound)
 	}
 
-	_, err := prompt.Execute(ctx,
-		ai.WithInput(data),
-		ai.WithStreaming(func(_ context.Context, chunk *ai.ModelResponseChunk) error {
-			text := chunk.Text()
-			if text != "" {
-				return onChunk(text)
-			}
-			return nil
-		}),
-	)
+	result, err := prompt.Execute(ctx, ai.WithInput(data))
 	if err != nil {
-		return errorhelp.WithOP(op, err)
+		return domain.Response{}, errorhelp.WithOP(op, err)
 	}
 
-	return nil
+	var d decision
+	if err := json.Unmarshal([]byte(result.Text()), &d); err != nil {
+		return domain.Response{}, errorhelp.WithOP(op, err)
+	}
+
+	response, err := d.toResponse()
+	if err != nil {
+		return domain.Response{}, errorhelp.WithOP(op, err)
+	}
+
+	return response, nil
 }
 
-func (c *Client) responseData(dialog domain.Dialog) (string, map[string]any) {
+func (c *Client) responseData(userStyle string, dialog domain.Dialog) map[string]any {
 	slices.SortFunc(dialog.Messages, func(a, b domain.Message) int {
 		return cmp.Compare(a.Date, b.Date)
 	})
 
-	hasAuthorMessages := false
-
-	var authorMessagesBuilder strings.Builder
+	var ownerMessagesBuilder strings.Builder
 	var conversationBuilder strings.Builder
 
 	for _, msg := range dialog.Messages {
-		if dialog.Owner.ChatID == msg.Sender.ChatID {
-			hasAuthorMessages = true
-			authorMessagesBuilder.WriteString(fmt.Sprintf("- %s\n", msg.Text))
-		}
 		conversationBuilder.WriteString(fmt.Sprintf("[%s] %s: %s\n",
 			time.Unix(int64(msg.Date), 0).Format(time.DateTime),
 			msg.Sender.Name,
 			msg.Text,
 		))
+
+		if msg.Sender.ChatID == dialog.Owner.ChatID {
+			ownerMessagesBuilder.WriteString(fmt.Sprintf("%s\n", msg.Text))
+		}
 	}
 
-	promptName := "response_without_style"
 	data := map[string]any{
-		"author_name":  dialog.Owner.Name,
-		"conversation": conversationBuilder.String(),
-	}
-	if hasAuthorMessages {
-		promptName = "response_with_style"
-		data["author_messages"] = authorMessagesBuilder.String()
+		"user_style":             userStyle,
+		"owner_name":             dialog.Owner.Name,
+		"owner_message_examples": ownerMessagesBuilder.String(),
+		"conversation":           conversationBuilder.String(),
 	}
 
-	return promptName, data
+	return data
 }
