@@ -18,6 +18,6 @@ const (
 
 type Response struct {
 	Type         ResponseType `json:"type"`
-	Message      string       `json:"message"`
+	Message      string       `json:"message,omitempty"`
 	ReactionType ReactionType `json:"reaction_type,omitempty"`
 }
